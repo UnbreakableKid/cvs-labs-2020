@@ -30,4 +30,14 @@ public class Lab1Tests {
         assertEquals(-1, Lab1.max(new int[]{-4,-2,-3,-1,-5,-6},6));
     }
 
+    @Test
+    public void testLast(){
+        assertEquals(5, Lab1.findLast(new int[]{1,2,3,4,5,3}, 6, 3));
+        assertEquals(2, Lab1.findLast(new int[]{1,2,3,4,5,3}, 5, 3));
+        assertEquals(-1, Lab1.findLast(new int[]{1,2,3,4,5,3}, 1, 3));
+        assertEquals(-1, Lab1.findLast(new int[]{1,2,4,4,5,4}, 6, 3));
+    }
+
+
+
 }

@@ -96,7 +96,6 @@ public class MyIntegerList {
 	  If elem does not existe, it reurns the position where 
 	  elem should be inserted
 	*/
-    priv
     private int binaryIndex(int elem) {
         int left = 0;
         int right = ctr - 1;
@@ -111,10 +110,10 @@ public class MyIntegerList {
                 break;
             mid = (left + right) / 2;
         }
-
-        if(left == right)
+        if (left > right)
             return mid + 1;
-        return mid;
+
+        return -1;
     }
 
 	/*
