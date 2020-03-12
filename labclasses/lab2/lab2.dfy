@@ -38,6 +38,9 @@ ensures y == 2*x
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method abs(x:int) returns (y:int)
+{
+
+}
 
 /**
     Specify and implement the method max. The functionality of this method
@@ -48,6 +51,15 @@ method abs(x:int) returns (y:int)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method max(x:int, y:int) returns (z:int)
+ensures (z >= y && z == x) || (z >= x && z == y);
+{
+    if (x >= y) { 
+        return x;
+    } 
+    else{
+        return y;
+    }
+}
 
 /**
     Specify and implement the method min;
@@ -58,6 +70,15 @@ method max(x:int, y:int) returns (z:int)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method min(x:int, y:int) returns (z:int)
+ensures (z <= y && z == x) || (z <= x && z == y);
+{
+    if (x <= y) { 
+        return x;
+    } 
+    else{
+        return y;
+    }
+}
 
 /**
     Specify and implement the method div;
@@ -71,6 +92,13 @@ method min(x:int, y:int) returns (z:int)
     runtime errors such as a division by zero.
 */
 method div(x:int, y:int) returns (z:int)
+requires y != 0;
+ensures z == x/y;
+
+{
+    z := x/y;
+    return z;
+}
 
 /**
     Specify and implement the method square;
@@ -82,7 +110,12 @@ method div(x:int, y:int) returns (z:int)
 */
 method square(x:int) returns (z:int)
 requires true
+ensures z == x*x;
 
+{
+    z:= x*x;
+    return z;
+}
 /**
     Specify and implement the method module; This method is expected
     to return the remainder of the division of the first argument by
@@ -93,7 +126,11 @@ requires true
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method modulo(x:int, y:int) returns (z:int)
-
+requires y != 0;
+ensures z >= 0;
+{
+    return x % y;
+}
 /**
     Specify and implement the method sign. This method extraccts the signal
     of the argument. When the result is multiplied by a positive value,
@@ -111,6 +148,18 @@ method modulo(x:int, y:int) returns (z:int)
     A conditional must have the two branches, then and else.
 */
 method sign(x:int) returns (z:int)
+requires true;
+ensures x >= 0 <==> z == 0;
+ensures x < 0 <==> z == 1;
+
+{
+    if (x < 0) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
 
 /**
     In Dafny, functions consist of one expression (usually an if then else) and are not compiled.
@@ -151,7 +200,23 @@ requires n >= 0
     variable each iteration, start at 0 and increment it.
 */
 method computeSumallpositive(n:int) returns (z:int)
+    requires n >= 0;
+    ensures z == sumallpositive(n);
+{
+    var i:int := 0;
+    var sum:int := 0;
 
+    while( i < n )
+        invariant 0 <= i <= n;
+        invariant sum == sumallpositive(i);
+        decreases n - i;
+    {
+        i := i +1;
+        sum := sum + i;
+    }
+    assert sum == sumallpositive(n);
+    return sum;
+}
 /**
     Specify and implement the method computeDivision; this method yields a
     pair (a, b), where a is the result of the integer division of x by y 
@@ -174,6 +239,7 @@ method computeSumallpositive(n:int) returns (z:int)
 */
 method computeDivision(x:int, y:int) returns (a:int, b:int)
 
+
 /**
     Specify and implement the method computeFactorial; this method returns
     the factorial of x, i.e.m !x. For instance, computeFactorial(3) yields
@@ -186,6 +252,12 @@ method computeDivision(x:int, y:int) returns (a:int, b:int)
     Hint: you will most likely need to define an auxilliary function.
 */
 method computeFactorial(x:int) returns (z:int)
+requires x > 0;
+{
+
+}
+
+
 
 /**
     Specify and implement the method computeFibbonaci; this method returns
@@ -199,3 +271,20 @@ method computeFactorial(x:int) returns (z:int)
     See: https://en.wikipedia.org/wiki/Fibonacci_number
 */
 method computeFibonacci(x:int) returns (z:int)
+requires x > 0;
+ensures z >= x;
+decreases x;
+{
+    // NOT RECURSIVE, IDIOTS
+    var res:int := 0;
+
+    if (x <= 2) {
+        res := x;
+    }
+    else{
+        var a:int := computeFibonacci(x-1);
+        var b:int := computeFibonacci(x-2);
+        res := a + b;
+    }
+    return res;
+}
