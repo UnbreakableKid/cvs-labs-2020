@@ -17,18 +17,12 @@ public class MyIntegerList {
         return ctr;
     }
 
-	/*
-	  puts elem at the end of this list
-	*/
     public void push(int elem) {
         resize();
 
         content[ctr++] = elem;
     }
 
-	/*
-	  Inserts elem into this list in such a way that this list stays sorted.
-	*/
     public void sortedInsertion(int elem) {
         int idx = binaryIndex(elem);
 
@@ -40,23 +34,15 @@ public class MyIntegerList {
         insertAt(elem, idx);
     }
 
-	/*
-	  Inserts elem into this list at position idx.
-	*/
     public void insertAt(int elem, int idx) {
         resize();
 
-        for (int i = ctr - 1; i > idx; i--)
+        for (int i = ctr++; i > idx; i--)
             content[i] = content[i - 1];
 
         content[idx] = elem;
-
-        ctr++;
     }
 
-	/*
-	  Resizes this list if necessary.
-	*/
     private void resize() {
         if (ctr < content.length)
             return;
@@ -69,65 +55,47 @@ public class MyIntegerList {
         content = newContent;
     }
 
-	/*
-	  Removes the element at the end of this list.
-	*/
     public int pop() {
-        int t = content[ctr];
-
-        ctr = ctr -1;
-
-        return t;
+        return content[--ctr];
     }
 
-	/*
-	  Removes the element at the head of this list.
-	*/
     public int dequeue() {
         int t = content[0];
 
-        content[0] = content[ctr--];
+        for (int i = 0; i < ctr - 1; i++)
+            content[i] = content[i + 1];
+        ctr--;
 
         return t;
     }
 
-	/*
-	  Returns the index of elem in this list if it exists.
-	  If elem does not existe, it reurns the position where 
-	  elem should be inserted
-	*/
-    priv
-    private int binaryIndex(int elem) {
+    public int binaryIndex(int elem) {
         int left = 0;
         int right = ctr - 1;
-        int mid = (left + right) / 2;
+        int mid = right / 2;
 
-        while (left < right) {
+        while (left <= right) {
             if (content[mid] < elem)
                 left = mid + 1;
             else if (content[mid] > elem)
                 right = mid - 1;
             else
-                break;
-            mid = (left + right) / 2;
+                return mid;
+
+            mid = left + (right - left) / 2;
         }
 
-        if(left == right)
-            return mid + 1;
-        return mid;
+        return left;
     }
 
-	/*
-	  Returns the index of element elem if it exists.
-	*/
-    public int indexOf(int elem){
-        int idx = binaryIndex(elem);
-        return idx;
+    public int indexOf(int elem) {
+        for (int i = 0; i < ctr; i++) {
+            if (elem == content[i])
+                return i;
+        }
+        return -1;
     }
 
-	/*
-		Sorts this list using bubble sort algorithm
-	*/
     public void bubbleSort() {
         boolean swap;
         do {
@@ -135,83 +103,72 @@ public class MyIntegerList {
         } while (swap);
     }
 
-	/*
-		Auxiliary function. 
-		Makes one iteration of the bubble sort algorithm.
-	*/
     private boolean bubbleRun() {
         boolean swap = false;
-        for (int i = 0; i < ctr - 1 && !swap ; i++) {
+        for (int i = 0; i < ctr - 1 && !swap; i++) {
             if (content[i] > content[i + 1]) {
                 swap = true;
                 int t = content[i];
                 content[i] = content[i + 1];
-                content[i+++1] = t;
+                content[i++ + 1] = t;
             }
         }
         return swap;
     }
 
-	/*
-	  Returns the sum of all integers in this list.
-	*/
     public int elementsSum() {
         int sum = 0;
 
         for (int i = 0; i < ctr; i++)
-            sum += content[i++];
+            sum += content[i];
 
         return sum;
     }
 
-	/*
-	  Returns the average of all integers in this list.
-	*/
     public double elementsAvg() {
-        return elementsSum() / ctr;
+        double avg = 0;
+        for(int i = 0; i < ctr; i++){
+            avg += (double)content[i]/ctr;
+        }
+        return avg;
     }
 
-	/*
-	  Removes the element at position idx.
-	*/
     public int removeAt(int idx) {
         ctr--;
         int t = content[idx];
 
-        for (int i = idx; i < ctr - 1; i++)
+        for (int i = idx; i < ctr; i++)
             content[i] = content[i + 1];
 
         return t;
     }
 
-	/*
-	  Removes repeated elements.
-	*/
     public void removeRepetitions() {
         for (int i = 0; i < ctr; i++) {
             for (int j = i + 1; j < ctr; j++) {
-                if (content[i] == content[j])
-                removeAt(j);
+                if (content[i] == content[j]) {
+                    removeAt(j--);
+                }
             }
         }
     }
 
-	/*
-	  Returns whether or not this list is empty.
-	*/
     public boolean isEmpty() {
         return ctr == 0;
     }
 
-	/*
-	  Returns the number of different elements in this list.
-	*/
     public int countDifferent() {
-        int different = ctr;
-        for (int i = 1; i < ctr - 1; i++) {
-            if (content[i] == content[i + 1])
-                different--;
+        Set<Integer> seen = new HashSet<>();
+
+        int different = 0;
+
+        for (int i = 0; i < ctr; i++) {
+            if (seen.contains(content[i]))
+                continue;
+            different++;
+            seen.add(content[i]);
         }
+
         return different;
     }
 
