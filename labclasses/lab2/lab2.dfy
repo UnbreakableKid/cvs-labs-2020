@@ -30,6 +30,23 @@ ensures y == 2*x
 }
 
 /**
+    This  is a method to understand the assignment rule. You should introduce assertions 
+    interspersed with the code to illustrate the intermediate knowledge, carried by the 
+    solver.
+ */
+method switch(v1:int, v2:int) {
+    var a:int := v1;
+    var b:int := v2;
+    var c:int; 
+
+    assert a == v1 && b == v2;
+    c := a;
+    a := b;
+    b := c;
+    assert a == v2  && b == v1;
+}
+
+/**
     Specify and implement method abs below. The functionality of this method
     it to return the absolute value of the value passed as argument.
 
