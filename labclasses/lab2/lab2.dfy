@@ -25,7 +25,7 @@ method test(x:int) returns (y:int)
 requires true
 ensures y == 2*x
 {
-    assert 10 == 10;
+    assert 10 != 10;
     return 2*x;
 }
 
