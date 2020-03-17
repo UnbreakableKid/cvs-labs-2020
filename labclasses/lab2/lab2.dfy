@@ -39,6 +39,7 @@ method switch(v1:int, v2:int) {
     var b:int := v2;
     var c:int; 
 
+
     assert a == v1 && b == v2;
     c := a;
     a := b;
