@@ -33,8 +33,33 @@
     Note 2: in the postconditions avoid using the existing division <x/y>
     and modulo <x%y> operations.
 */
-method computeDivision(x:int, y:int) returns (a:int, b:int)
+method computeDivision(x:int, y:int) returns (q:int, r:int)
+requires x >= 0 && y > 0
+ensures x == y * q + r && r < y
+{
+    var n:= x;
+    q := 0;
+    assert x == n;
 
+    while( n >= y ) 
+        decreases n - y
+        invariant x == y * q + n
+    {
+        q := q + 1;
+        n := n - y;
+    }
+    assert x == y * q + n;
+    r := n;
+    
+    
+}
+
+function factorial (x:int): (z:int)
+decreases x
+requires x >= 0
+{
+   if x == 0 then 1 else x * factorial(x-1)  
+}
 
 /**
     Specify and implement the method computeFactorial; this method returns
@@ -48,6 +73,25 @@ method computeDivision(x:int, y:int) returns (a:int, b:int)
     Hint: you will most likely need to define an auxilliary function.
 */
 method computeFactorial(x:int) returns (z:int)
+requires x >= 0
+ensures z == factorial(x)
+{
+    z := 1;
+    var i := 0;
+
+    while(i < x)
+        decreases x - i
+        invariant 0 <= i <= x
+        invariant z == factorial(i)
+    {
+        i := i + 1;
+        z := z * i;
+    }
+    assert x == 0 || i == x;
+    assert z == factorial(x);
+    
+    
+}
 
 /**
     Specify and implement the method computeFibbonaci; this method returns
@@ -71,6 +115,31 @@ method computeFibonacci(x:int) returns (z:int)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method indexOf(a:array<int>, n:int, elem:int) returns (z:int)
+    requires 0 <= n <= a.Length
+    ensures -1 <= z < n
+    ensures 0 <= z < n ==> a[z] == elem
+    ensures z == -1 ==> forall j :: 0 <= j < n ==> a[j] != elem
+
+{
+    var i := 0;
+    while (i < n) 
+        decreases n - i
+        invariant -1 <= i <= n
+        invariant forall j :: 0 <= j < i ==> a[j] != elem
+    {
+        
+        if a[i] == elem {
+        
+            return i;
+
+        }
+
+        i := i + 1;
+    }
+    assert forall j :: 0 <= j < n ==> a[j] != elem;
+    return -1;
+
+}
 
 /**
     Specify and implement method max. This method retuns a pair where
@@ -84,6 +153,31 @@ method indexOf(a:array<int>, n:int, elem:int) returns (z:int)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method max(a:array<int>, n:int) returns (maxVal:int, maxIdx:int)
+    requires 0 < n <= a.Length
+    ensures 0 <= maxIdx < n
+    ensures a[maxIdx] == maxVal
+{
+    var i := 0;
+    maxIdx := 0;
+    maxVal := a[0];
+
+    while( i < n )
+        decreases n - i
+        invariant 0 <= i <= n
+        invariant forall j :: 0 <= j < i ==> a[j] <= maxVal
+        invariant 0 <= maxIdx < n
+        invariant a[maxIdx] == maxVal
+    {
+        if (a[i] > maxVal){
+            
+            maxVal := a[i];
+            maxIdx := i;
+        
+        }
+        
+        i := i+1;
+    }
+}
 
 /**
     Specify and implement method min. This method retuns a pair where
@@ -110,6 +204,27 @@ method min(a:array<int>, n:int) returns (minVal:int, minIdx:int)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method fillK(a:array<int>, n:int, k:int, count:int) returns (b:bool)
+    requires 0 < n <= a.Length
+    requires 0 < count <= n
+    ensures b <==> forall j::0 <= j < count ==> a[j] == k 
+{
+
+    var i := 0;
+
+    while(i < count) 
+        decreases count - i
+        invariant 0 <= i <= count
+        invariant forall j::0 <= j < i ==> a[j] == k
+    {
+
+        if (a[i] != k){
+            return false;
+        }
+
+        i := i + 1;
+    }
+    return true;
+}
 
 /**
     Specify and implement method containsSubString. This method tests wheteher or
@@ -157,6 +272,22 @@ method resize(a:array<int>) returns (z:array<int>)
     so that it satisfies the post-conditions assuming the pre-conditions.
 */
 method reverse(a:array<int>, n:int) returns (z:array<int>)
+    requires 0 < n <= a.Length;
+    ensures a.Length == z.Length
+    ensures forall i :: 0 <= i < n ==> a[i] == z[n-i-1] 
+{
+    z := new int[a.Length];
+    var i := 0;
+    
+    while(i < n)
+        decreases n - i
+        invariant 0 <= i <= n
+        invariant forall j :: 0 <= j < i ==> z[j] == a[n-j-1]
+    {
+        z[i] := a[n-i-1];
+        i := i + 1;
+    }
+}
 
 /**
     Specify and implement method push.
