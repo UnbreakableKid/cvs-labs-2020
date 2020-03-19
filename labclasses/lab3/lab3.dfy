@@ -33,7 +33,24 @@
     Note 2: in the postconditions avoid using the existing division <x/y>
     and modulo <x%y> operations.
 */
-method computeDivision(x:int, y:int) returns (a:int, b:int)
+method computeDivision(x:int, y:int) returns (q:int, r:int)
+    requires y > 0
+    ensures x == y * q + r
+    ensures r < y
+{
+    var n := x;
+    q := 0;
+    assert x == n;
+    while( n >= y ) 
+        decreases n - y
+        invariant x == y * q + n
+    {
+        q := q + 1;
+        n := n - y;
+    }
+    assert x == y * q + n;
+    r := n;
+}
 
 
 /**
