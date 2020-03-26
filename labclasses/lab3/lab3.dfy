@@ -73,13 +73,14 @@ requires x >= 0
     Hint: you will most likely need to define an auxilliary function.
 */
 method computeFactorial(x:int) returns (z:int)
-requires x >= 0
-ensures z == factorial(x)
+    requires x >= 0
+    ensures x == 0 ==> z == 1
+    ensures z == factorial(x)
 {
     z := 1;
     var i := 0;
 
-    while(i < x)
+    while (i < x)
         decreases x - i
         invariant 0 <= i <= x
         invariant z == factorial(i)
@@ -87,10 +88,6 @@ ensures z == factorial(x)
         i := i + 1;
         z := z * i;
     }
-    assert x == 0 || i == x;
-    assert z == factorial(x);
-    
-    
 }
 
 /**
