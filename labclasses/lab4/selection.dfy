@@ -9,7 +9,6 @@ function partitioned(a:array<char>,i:int,n:int):bool
 { forall k, l :: 0 <= k < i <= l < n ==> (a[k] <= a[l]) }
 
 
-
 method selectSmaller(a:array<char>, i:int, n:int) 
   requires 0 <= i < n <= a.Length
   requires sorted(a, i)
@@ -35,7 +34,7 @@ method selectSmaller(a:array<char>, i:int, n:int)
   }
   assert sorted(a, i);
   assert partitioned(a, i, n);
-  assert forall k :: i < k < j ==> a[i] <= a[k];
+  assert forall k :: i < k < n ==> a[i] <= a[k];
   // ==> 
   assert sorted(a, i+1);
   assert partitioned(a, i+1, n);
@@ -53,6 +52,8 @@ method selectionSort(a:array<char>, n:int)
     invariant partitioned(a, i, n)
   {
     selectSmaller(a, i, n);
+    assert sorted(a, i+1);
+    assert partitioned(a, i+1, n);
     i := i + 1;
   }
 }
