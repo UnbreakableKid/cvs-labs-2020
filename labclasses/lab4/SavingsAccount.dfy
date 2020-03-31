@@ -16,28 +16,6 @@
  *                               the user only has $$10, his checking account
  *                               can only decrease down to $$-5 (10/2).
  * 							 
- * Operation 2: witdraw 2        Despite the fact that the checking balance of
- * 								 the user is zero, he can insure it with the
- *                               money in his savings account, therefore, this
- *                               operation is valid, and the result would be
- * 								
- * Implement a savings accunt.
- * A savings account is actually made up of two balances.
- * 
- * One is the checking balance, here account owner can deposit and withdraw
- * money at will. There is only one restriction on withdrawing. In a regular
- * bank account, the account owner can make withdraws as long as he has the
- * balance for it, i.e., the user cannot withdraw more money than the user has.
- * In a savings account, the checking balance can go negative as long as it does
- * not surpass half of what is saved in the savings balance. Consider the
- * following example:
- *
- * Savings = 10
- * Checking = 0
- * Operation 1: withdraw 10      This operation is not valid. Given that the
- *                               the user only has $$10, his checking account
- *                               can only decrease down to $$-5 (10/2).
- * 							 
  * Operation 2: withdraw 2        Despite the fact that the checking balance of
  * 								 the user is zero, he can insure it with the
  *                               money in his savings account, therefore, this
@@ -71,25 +49,17 @@
  * go beyond the -50% of the savings account; big no no.
  *
  */
+
 class SavingsAccount {
  
-  constructor() {
-  }
+  constructor() {}
   
-  method deposit(amount:int) {
+  method deposit(amount:int) {}
 
-    assert 10 != 10;
-  }
+  method withdraw(amount:int) {}
 
-  method withdraw(amount:int) {
-  }
+  method save(amount: int) {}
 
-  method save(amount:int) {
-  }
+  method rescue(amount: int) {}
 
-  method rescue(amount:int) {
-  }
-  
-  method main() {
-  }
 }
