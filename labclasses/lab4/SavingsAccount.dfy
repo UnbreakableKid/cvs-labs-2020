@@ -90,48 +90,4 @@ class SavingsAccount {
   
   method main() {
   }
-} something like:
- * Savings = 10;
- * Checking = -2
- *
- * Regarding depositing money in the savings balance (save), this operation has 
- * one small restrictions. It is only possible to save money to the savings
- * balance when the user is not in debt; i.e. to save money into sqavings, the 
- * checking must be non-negative.
- *
- * Given the states:
- * STATE 1                                    STATE 2
- * Savings = 10                               Savings = 10
- * Checking = -5                              Checking = 0
- *
- * and the operation save($$60000000000), the operations is valid when executed
- * on STATE 2 but not on STATE 1.
- *
- * Finally, when withdrawing from the savings balance, an operation we will
- * call rescue, the amoun the user can withdraw depends on the negativety of the
- * user's checking acocunt. For instance:
- *
- * Savings: 12
- * Checking: -5
- *
- * In the case, the user could withdraw at most two double dollars ($$). If the
- * user withdraw more than that, the balance of the checking account would
- * go beyond the -50% of the savings account; big no no.
- *
- */
-class SavingsAccount {
- 
-  constructor() {
-  }
-  
-  method deposit(amount:int) {
-  }
-
-  method withdraw(amount:int) {
-  }
-  method save(amount:int) {
-  }
-  
-  method main() {
-  }
 }
