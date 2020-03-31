@@ -1,4 +1,4 @@
-/**
+/*
  * Implement a savings account.
  * A savings account is actually made up of two balances.
  * 
@@ -20,8 +20,8 @@
  * 								 the user is zero, he can insure it with the
  *                               money in his savings account, therefore, this
  *                               operation is valid, and the result would be
- * 								/**
- * Implement a savings account.
+ * 								
+ * Implement a savings accunt.
  * A savings account is actually made up of two balances.
  * 
  * One is the checking balance, here account owner can deposit and withdraw
@@ -77,6 +77,8 @@ class SavingsAccount {
   }
   
   method deposit(amount:int) {
+
+    assert 10 != 10;
   }
 
   method withdraw(amount:int) {
