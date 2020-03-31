@@ -5,20 +5,24 @@
  * array, and the position at which the new element was inserted.
  */
 
-method sortedInsertion(a:array<int>, na:int, e:int) returns (z:array<int>, nz:int, pos:int)
+function sorted(a:array<char>, n:int):bool
+    requires 0 <= n <= a.Length
+    reads a
+{ forall i, j:: (0 <= i < j < n) ==> a[i] <= a[j] }
+
+
+method sortedInsertion(a:array<char>, na:int, e:int) 
+    returns (z:array<char>, nz:int, pos:int)
 {
 
 }
+
+// Alternative formulations:
 
 function sortedRange(a:array<char>, l:int, h:int):bool
     requires 0 <= l <= h <= a.Length
     reads a
 { forall i, j:: (l <= i < j < h) ==> a[i] <= a[j] }
-
-function sorted(a:array<char>, n:int):bool
-    requires 0 <= n <= a.Length
-    reads a
-{ forall i, j:: (0 <= i < j < n) ==> a[i] <= a[j] }
 
 method insert(a:array<char>, i:int, v:char, n:int)
   requires 0 <= n < a.Length
