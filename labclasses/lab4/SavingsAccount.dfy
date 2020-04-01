@@ -7,6 +7,7 @@
  */
 class SavingsAccount {
  
+ 
   constructor() {
   }
   
@@ -15,6 +16,7 @@ class SavingsAccount {
 
   method withdraw(amount:int) {
   }
+  
   method save(amount:int) {
   }
   
