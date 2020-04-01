@@ -9,7 +9,6 @@ function partitioned(a:array<char>,i:int,n:int):bool
 { forall k, l :: 0 <= k < i <= l < n ==> (a[k] <= a[l]) }
 
 
-
 method selectSmaller(a:array<char>, i:int, n:int) 
   requires 0 <= i < n <= a.Length
   requires sorted(a, i)

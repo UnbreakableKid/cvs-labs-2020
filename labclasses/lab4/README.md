@@ -5,7 +5,7 @@ A guide on Dafny can be found at : [Click me!](https://rise4fun.com/Dafny/tutori
 
 Lab 4:	
 
-* For each unimplemented method in the __lab4.dfy__ file start by defining the most relaxed preconditions and the most strict postconditions you can think of, then implement the method according to the conditions. Afterwards, proceed to implement the class SavingsAccount in __SavingsAccout.dfy__.
+* For each unimplemented method in the __lab4.dfy__ file start by defining the most relaxed preconditions and the most strict postconditions you can think of, then implement the method according to the conditions. Afterwards, proceed to implement the class SavingsAccount in __SavingsAccount.dfy__.
 
 
 # Equipa docente
