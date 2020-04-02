@@ -8,6 +8,8 @@ The algorithm you should use Dafny to specify, implement, and verify, is the equ
 
   If the ArrayList does not contain the specified value, the method returns a negative integer. You can apply the bitwise complement operation (~) to this negative integer to get the index of the first element that is larger than the search value. When inserting the value into the ArrayList, this index should be used as the insertion point to maintain the sort order.
 
+**Notice that Dafny does not have a bitwise complement operator, therefore, it is not possible to follow the exact description provided above. As an alternative, you can obtain the insertion position using the following operation: -z-1 where z is the return of the method (the -1 is necessary to deal with the limit case where the insertion position is zero). **
+
 You should use the following type signature 
 
 ```
