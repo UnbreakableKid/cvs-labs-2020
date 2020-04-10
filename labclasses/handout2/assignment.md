@@ -17,10 +17,10 @@ The operation ```map.put(10, 'e')``` will succeed producing the state ```map = [
 ## Retrieval Operation: 
 Signature:
 ```
-method get(k:int, def:int) returns(v:char)
+method get(k:int, def:char) returns(v:char)
 ```
 
-The value retrieval operation given a key passed as argument (```k```) will return the corresponding value. If the value is not in the map, then it will return a default value, also supplies as an argument to the method (```def```).
+The value retrieval operation given a key passed as argument (```k```) will return the corresponding value. If the value is not in the map, then the operation will return a default value, also supplied as an argument to the method (```def```).
 
 ## Test Operation: 
 Signature:
