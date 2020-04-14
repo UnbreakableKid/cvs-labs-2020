@@ -27,7 +27,7 @@ Signature:
 ```
 method contains(k:int) returns(z:bool)
 ```
-This operation tests wether or not the key (```k```) is in the map. It returns true if there is a mapping in this dictionary for (```k```) and false otherwise.
+This operation tests whether the key (```k```) is in the map. It returns true if there is a mapping in this dictionary for (```k```) and false otherwise.
 
 
 ## Remarks:
