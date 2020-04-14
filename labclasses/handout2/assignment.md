@@ -1,6 +1,6 @@
 # CVS 2020 - First Handout Dafny
 
-For the second Dafny handout, you will have to implement and verify in Dafny a hash map. The hash map takes as key integers and characters as values (the Java equivalent would be HashMap<Integer, Character>). You should follow the typical implementation based on an underlying array of collision buckets and make use of abstract states for your specifications. The map must support the following three operations: element insertion, element retrieval, and element existence test operation.
+For the second Dafny handout, you will have to implement and verify in Dafny a hash map. The hash map takes integers as keys and characters as values (the Java equivalent would be HashMap<Integer, Character>). You should follow the typical implementation based on an underlying array of collision buckets and make use of abstract states for your specifications, thus not revealing the implementation details (the representation type). The hash map must support the following three operations: element insertion, element retrieval, and element existence test operation.
 
 ## Insertion Operation: 
 Signature:
@@ -8,11 +8,11 @@ Signature:
 method put(k:int, v:char)
 ```
 
-This operation takes as arguments a key of type int and a value of type char. Given the input, the operation stores the pair in the map unless the key already exists in the map, in which vase, the operation has no effect. Consider the following map:
+This operation takes as arguments a key of type int and a value of type char. Given the input, the operation stores the pair in the map unless the key already exists in the map, in which case, the operation has no effect. Consider the following map:
 
-```map = [0->'b', 1->10]```
+```map = [0->'b', 1->'c']```
 
-The operation ```map.put(10, 'e')``` will succeed producing the state ```map = [0->'b', 1->10, 10->'e']``` while the operation ```map.put(1, 'z')``` will not change the state in any way.
+The operation `map.put(10, 'e')` will succeed producing the state `map = [0->'b', 1->'c', 10->'e']` while the operation `map.put(1, 'z')` will not change the state in any way.
 
 ## Retrieval Operation: 
 Signature:
@@ -27,7 +27,7 @@ Signature:
 ```
 method contains(k:int) returns(z:bool)
 ```
-This operation tests whether or not the key (```k```) is in the map. It returns true if there is a mapping in this dictionary for (```k```) and false otherwise.
+This operation tests wether or not the key (```k```) is in the map. It returns true if there is a mapping in this dictionary for (```k```) and false otherwise.
 
 
 ## Remarks:
