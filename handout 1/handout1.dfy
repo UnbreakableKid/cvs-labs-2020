@@ -45,9 +45,8 @@ method BinarySearch(a: array<int>, n: int, e: int) returns (z: int)
         }
     }
 
-    z := right + 1;
-    
-    z := z * - 1;
+    z := - right;
+    z := z  - 1;
     
     return z;
 
