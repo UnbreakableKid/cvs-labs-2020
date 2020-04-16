@@ -1,4 +1,4 @@
-# CVS 2020 - First Handout Dafny
+# CVS 2020 -- First Handout Dafny
 
 For the second Dafny handout, you will have to implement and verify in Dafny a hash map. The hash map takes integers as keys and characters as values (the Java equivalent would be HashMap<Integer, Character>). You should follow the typical implementation based on an underlying array of collision buckets and make use of abstract states for your specifications, thus not revealing the implementation details (the representation type). The hash map must support the following three operations: element insertion, element retrieval, and element existence test operation.
 
