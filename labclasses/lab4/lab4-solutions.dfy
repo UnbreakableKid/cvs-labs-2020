@@ -1,3 +1,39 @@
+function sortedI(a:array<int>, n:int):bool
+    requires 0 <= n <= a.Length
+    reads a
+{ forall i, j:: (0 <= i < j < n) ==> a[i] <= a[j] }
+
+method sortedInsertion(a:array<int>, na:int, e:int) returns (z:array<int>, nz:int, pos:int)
+  requires 0 <= na < a.Length
+  requires sortedI(a, na)
+  ensures sortedI(a, na+1)
+  ensures 0 <= pos <= na && a[pos] == e
+  ensures forall k :: 0 <= k < pos ==> a[k] == old(a[k])
+  ensures forall k :: pos < k < na ==> a[k] == old(a[k-1])
+  modifies a
+{
+  var i := na;
+  if( na > 0 ) 
+  { a[na] := a[na-1]; }
+  while 0 < i && e < a[i-1] 
+    decreases i
+    invariant 0 <= i <= na
+    invariant sortedI(a, na+1)
+    invariant forall k :: i < k < na+1 ==> e <= a[k] 
+    invariant forall k :: 0 <= k < i ==> a[k] == old(a[k])
+    invariant forall k :: i < k < na ==> a[k] == old(a[k-1])
+  {
+    a[i] := a[i-1];
+    i := i - 1;
+  }
+  a[i] := e;
+  return a, na+1, i;
+}
+
+
+
+
+
 function sortedRange(a:array<int>, s:int, e:int) : bool 
 requires 0 <= s <= e <= a.Length
 reads a
@@ -5,7 +41,7 @@ reads a
     forall i,j :: s <= j <= i < e ==> a[j] <= a[i]
 }
 
-method sortedInsertion(a:array<int>, na:int, e:int) returns (z:array<int>, nz:int, pos:int)
+method sortedInsertion2(a:array<int>, na:int, e:int) returns (z:array<int>, nz:int, pos:int)
 
 requires 0 <= na < a.Length - 1 //there is at least one empty space
 requires sortedRange(a, 0, na)
@@ -59,3 +95,4 @@ modifies a
 
     return a, na + 1, x;
 }
+
