@@ -5,15 +5,11 @@ public class Account {
 
   /*@ 
   predicate AccountInv(int c, int s) = 
-  	this.checking |-> c 
-	&*&
-	this.savings |-> s
-  	&*&
-  	c >= 0
-	&*&
-	s >= 0
-	&*&
-	c <= c/2;
+        this.checking |-> c 
+    &*& this.savings |-> s 
+    &*& c >= 0 
+    &*& s >= 0 
+    &*& c >= -(s/2);
   @*/
 
   public Account()
@@ -21,7 +17,6 @@ public class Account {
   //@ ensures AccountInv(0, 0);
   {
     savings = 0;
-	checking = 0;
+    checking = 0;
   }
-
 }

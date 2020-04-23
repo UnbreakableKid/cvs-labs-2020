@@ -5,7 +5,7 @@
     &*& t.val |-> v;
 
   predicate List(Node n;) =
-    n == null ? true : Node(n, ?nn, _) &*& List(nn);
+    n == null ? emp : Node(n, ?nn, _) &*& List(nn);
 @*/
 
 class Node {
