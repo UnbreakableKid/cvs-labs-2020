@@ -1,4 +1,5 @@
 
+//Queue based on a circular buffer.
 class Queue {
 
   //creates a new Queue with capacity max.
