@@ -20,7 +20,7 @@ class MRSWLock {
 	void readUnlock ();
 	
 	/*
-	 * Aquires this lock for writing, after successfully returned from this
+	 * Acquires this lock for writing, after successfully returned from this
 	 * method, the caller has writing rights on the state protected by this
 	 * lock.
 	 */
