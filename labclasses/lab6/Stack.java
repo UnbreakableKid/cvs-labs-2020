@@ -3,6 +3,11 @@
   predicate StackInv(Stack t;) = 
         t.head |-> ?h
     &*& List(h);
+    
+  predicate NonEmptyStack(Stack t;) = 
+    t.head |-> ?h
+    &*& h != null
+    &*& List(h);
 @*/
 
 class Stack {
@@ -23,7 +28,7 @@ class Stack {
     head = new Node(v, head);
   }
   
-  public int pop()
+  public int pop_maybe()
   throws EmptyStackException //@ ensures StackInv(this);
   //@ requires StackInv(this);
   //@ ensures StackInv(this);
@@ -34,6 +39,25 @@ class Stack {
       return val;
     }
     throw new EmptyStackException();
+  }
+  
+  public int pop()
+    //@ requires NonEmptyStack(this);
+  //@ ensures StackInv(this);
+  {
+  
+      int val = head.getValue();
+      head = head.getNext();
+      return val;
+  }
+  
+  public boolean isEmpty()
+  //@ requires StackInv(this);
+  //@ ensures result?StackInv(this):NonEmptyStack(this);
+  {
+  	
+  	return head == null;
+  
   }
   
 }
