@@ -3,7 +3,7 @@ Construction and Verification of Software 2019/20.
 
 Project assignment to implement and verify a simplified blockchain.
 
-©2020 João Costa Seco, Eduardo Geraldo
+ï¿½2020 Joï¿½o Costa Seco, Eduardo Geraldo
 
 Note: please add your names and student numbers in all files you submit.
 */
@@ -11,6 +11,8 @@ Note: please add your names and student numbers in all files you submit.
 
 
 /* There are auxiliary functions and lemmas to assist in the verification of the code below. */
+
+import java.util.Random;
 /*@
 	fixpoint int sum(list<int> vs) {
 		switch(vs) {
@@ -100,6 +102,78 @@ interface Block {
 
 class Blockchain {
 	Block head;
+	int counter; 
 	
+	public Blockchain()
+	//@ requires true;
+	//@ ensures isBlockchain(this) &*& this.counter |-> ?c &*& c == 0;
+	{
+	 head = null;
+	 counter = 0;
+	}
 	// Add methods and fields here.
+	
+	public void addSummaryBlock(int balances[])
+	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& ValidCheckpoint(balances);
+	//@ ensures isBlockchain(this);
+	{ 
+		counter++;
+		
+		if((counter % 10) != 0)
+			return;
+		else{
+		//@assert counter % 10 == 0;
+		
+		SummaryBlock block = new SummaryBlock(head, 1, balances);
+			
+		head = block;	
+		}	
+	}
+	
+	public void addSimpleBlock(Transaction ts[])
+	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
+	//@ ensures isBlockchain(this);
+	{
+	counter++;
+		
+		if((counter % 10) == 0)
+			return;
+		else{
+		//@assert counter % 10 != 0;
+		
+		SimpleBlock block = new SimpleBlock(head, 1, ts);
+			
+		head = block;	
+		}
+	}
+
+	public static void main(String[] args) 
+	//@ requires true;
+	//@ ensures true;
+	{
+		int[] balances = new int[] { 70, 14 };
+
+		Blockchain b = new Blockchain();
+		
+
+		Queue ts = new Queue(10);
+
+		int paying = 50;
+		
+		Transaction t = new Transaction(balances[0], balances[1], paying);
+		
+		balances[0] -= paying;
+		
+		balances[1] += paying;
+
+		ts.enqueue(t);
+
+		//b.addSimpleBlock(ts.elements);
+
+		b.addSummaryBlock(balances);
+	}
+
 }
+	
+	
+
