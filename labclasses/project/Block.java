@@ -1,3 +1,4 @@
+
 /*
 Construction and Verification of Software 2019/20.
 
@@ -9,10 +10,9 @@ Note: please add your names and student numbers in all files you submit.
 */
 
 
-
 /* There are auxiliary functions and lemmas to assist in the verification of the code below. */
 
-import java.util.Random;
+
 /*@
 	fixpoint int sum(list<int> vs) {
 		switch(vs) {
@@ -72,6 +72,8 @@ import java.util.Random;
    
 */
 
+
+
 interface Block {
 	//@ predicate BlockInv(Block p, int hp, int h); 
 
@@ -113,7 +115,7 @@ class Blockchain {
 	}
 	// Add methods and fields here.
 	
-	public void addSummaryBlock(int balances[])
+	public void addSummaryBlock(int[] balances)
 	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& ValidCheckpoint(balances);
 	//@ ensures isBlockchain(this);
 	{ 
@@ -121,12 +123,13 @@ class Blockchain {
 		
 		if((counter % 10) != 0)
 			return;
+		
 		else{
 		//@assert counter % 10 == 0;
-		
 		SummaryBlock block = new SummaryBlock(head, 1, balances);
-			
-		head = block;	
+		head = block;
+
+		//@close isBlockchain(this);	
 		}	
 	}
 	
@@ -139,7 +142,9 @@ class Blockchain {
 		if((counter % 10) == 0)
 			return;
 		else{
-		//@assert counter % 10 != 0;
+			//@assert counter % 10 != 0;
+		
+
 		
 		SimpleBlock block = new SimpleBlock(head, 1, ts);
 			
@@ -151,12 +156,11 @@ class Blockchain {
 	//@ requires true;
 	//@ ensures true;
 	{
-		int[] balances = new int[] { 70, 14 };
+		int[] balances = new int[] { 70, 14, 95, 300, 400 };
 
 		Blockchain b = new Blockchain();
 		
-
-		Queue ts = new Queue(10);
+		Queue ts = new Queue(100);
 
 		int paying = 50;
 		
@@ -167,10 +171,14 @@ class Blockchain {
 		balances[1] += paying;
 
 		ts.enqueue(t);
-
+		
+		
 		//b.addSimpleBlock(ts.elements);
+		
+		//@close isBlockchain(b);
 
 		b.addSummaryBlock(balances);
+		System.out.println("done");
 	}
 
 }
