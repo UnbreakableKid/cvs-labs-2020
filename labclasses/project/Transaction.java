@@ -18,7 +18,7 @@ Note: please add your names and student numbers in all files you submit.
 
 
 /*@
-	predicate TransInv(Transaction t; int s, int r, int v) =
+	predicate TransInv( Transaction t; int s, int r, int v) =
 			t.send |-> s
 		&*& ValidID(s) == true
 		&*& t.recv |-> r

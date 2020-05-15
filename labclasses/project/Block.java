@@ -133,13 +133,13 @@ class Blockchain {
 
 	
 
-	public void addSimpleBlock(Transaction ts[], int hash)
-	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_) &*& c % 10 > 0;
+	public void addSimpleBlock(Transaction[] ts, int hash)
+	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _)  &*& (c == 1? (c == 1):(c % 10 != 0));
 	//@ ensures isBlockchainWithCounter(this, c+1);
 	{
 
 
-		//@assert c % 10 != 0;
+
 
 		SimpleBlock block = new SimpleBlock(head, hash, ts);
 
@@ -154,7 +154,7 @@ class Blockchain {
 	//@ ensures true;
 	{
 
-		int maxTransactions = 5;
+		int maxTransactions = 1;
 
 		int[] balances = new int[Block.MAX_ID];
 
@@ -166,7 +166,7 @@ class Blockchain {
 
 		Blockchain b = new Blockchain();
 
-		Queue ts = new Queue(100);
+		//Queue ts = new Queue(100);
 
 		int paying = 50;
 
@@ -176,11 +176,11 @@ class Blockchain {
 
 		balances[1] += paying;
 
-		ts.enqueue(t);
-		ts.enqueue(t);
-		ts.enqueue(t);
-		ts.enqueue(t);
-		ts.enqueue(t);
+		//ts.enqueue(t);
+		//ts.enqueue(t);
+		//ts.enqueue(t);
+		//ts.enqueue(t);
+		//ts.enqueue(t);
 
 		Transaction[] toSend = new Transaction[maxTransactions];
 
@@ -192,11 +192,10 @@ class Blockchain {
 		//while (i < maxTransactions)
 		////@ invariant QueueInv(ts,?x,?m) &*& m >= maxTransactions &*& x > 0 &*& i >= 0  &*& array_slice(toSend,0,toSend.length, _);
 
-		toSend[0] = ts.dequeue();
-		toSend[1] = ts.dequeue();
-		toSend[2] = ts.dequeue();
-		toSend[3] = ts.dequeue();
-		toSend[4] = ts.dequeue();
+
+		toSend[0] = t;
+		
+		
 
 		int hash = 0;
 		int random = 0;
@@ -210,6 +209,10 @@ class Blockchain {
 			
 			//@assert b == null ? emp : b.head |-> ?l &*& isBlock(l,_) &*& b.counter |-> ?c;
 			//@close isBlockchain(b);
+			
+			//@assert b.counter  == 1;
+
+			
 			b.addSimpleBlock(toSend, random);
 
 

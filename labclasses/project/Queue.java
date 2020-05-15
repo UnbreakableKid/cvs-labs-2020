@@ -62,8 +62,8 @@ class Queue {
 
   //retrieves the element at the start of this Queue.
   Transaction dequeue()
-  //@ requires QueueInv(this, ?x, ?m) &*& x > 0;
-  //@ ensures  QueueInv(this, x-1, m);
+  //@ requires QueueInv(this, ?x, ?m) &*& x > 0 &*& this.elements |-> ?e &*& this.front |-> ?f;
+  //@ ensures  QueueInv(this, x-1, m) &*& result == e[f] &*& TransInv(result, _,_,_);
   {
   
   
