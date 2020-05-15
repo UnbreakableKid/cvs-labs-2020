@@ -1,6 +1,4 @@
-import java.util.Random;
-
-/*
+﻿/*
 Construction and Verification of Software 2019/20.
 
 Project assignment to implement and verify a simplified blockchain.
@@ -46,6 +44,8 @@ Note: please add your names and student numbers in all files you submit.
 			
 /*@	
 	predicate isBlockchain(Blockchain b;) = b == null ? emp : b.head |-> ?l &*& isBlock(l,_);
+	
+	predicate isBlockchainWithCounter(Blockchain b; int c) = isBlockchain(b) &*& b.counter |-> c &*& c >= 0;
  
 	predicate isBlock(Block b;int h) = b == null ? h == 0 : b.BlockInv(_, _, h);
 
@@ -102,131 +102,127 @@ interface Block {
 
 class Blockchain {
 	Block head;
-	int counter; 
+	int counter;
 	
+	public int getCounter(){
+		return counter;
+		}
+
 	public Blockchain()
 	//@ requires true;
 	//@ ensures isBlockchain(this) &*& this.counter |-> ?c &*& c == 0;
 	{
-	 head = null;
-	counter = 0;
-	 
+		head = null;
+		counter = 0;
+
 	}
 	// Add methods and fields here.
-	
+
 	public void addSummaryBlock(int[] balances, int hash)
-	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& balances.length == Block.MAX_ID;
-	//@ ensures isBlockchain(this);
-	{ 
-		counter++;
+	//@ requires isBlockchainWithCounter(this, ?c) &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& balances.length == Block.MAX_ID &*& (c == 0? (c == 0):(c % 10 == 0));
+	//@ ensures isBlockchainWithCounter(this, c+1);
+	{
+
 		
-		if((counter % 10) != 0)
-			return;
-		
-		else{
-			//@assert counter % 10 == 0;
-		
+
 		//@close ValidCheckpoint(balances);
 		SummaryBlock block = new SummaryBlock(head, hash, balances);
 		head = block;
-
-		//@close isBlockchain(this);
-		}	
+		counter = counter + 1;
 	}
+
 	
+
 	public void addSimpleBlock(Transaction ts[], int hash)
-	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-	//@ ensures isBlockchain(this);
+	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_) &*& c % 10 > 0;
+	//@ ensures isBlockchainWithCounter(this, c+1);
 	{
-	counter++;
-		
-		if((counter % 10) == 0)
-			return;
-		else{
-			//@assert counter % 10 != 0;
-		
-		
+
+
+		//@assert c % 10 != 0;
+
 		SimpleBlock block = new SimpleBlock(head, hash, ts);
-			
-		head = block;	
-		}
+
+		head = block;
+		//@close isBlockchain(this);
+		counter++;
+
 	}
 
-	public static void main(String[] args) 
+	public static void main(String[] args)
 	//@ requires true;
 	//@ ensures true;
 	{
 
 		int maxTransactions = 5;
 
-		int[] balances = new int[5];
+		int[] balances = new int[Block.MAX_ID];
 
 		balances[0] = 100;
 		balances[1] = 0;
 		balances[2] = 0;
 		balances[3] = 0;
 		balances[4] = 0;
-				
+
 		Blockchain b = new Blockchain();
-		
+
 		Queue ts = new Queue(100);
 
-		
 		int paying = 50;
-		
-		Transaction t = new Transaction(1,0, paying);
-		
+
+		Transaction t = new Transaction(1, 0, paying);
+
 		balances[0] -= paying;
-		
+
 		balances[1] += paying;
-		
+
 		ts.enqueue(t);
 		ts.enqueue(t);
 		ts.enqueue(t);
 		ts.enqueue(t);
 		ts.enqueue(t);
-		
+
 		Transaction[] toSend = new Transaction[maxTransactions];
-		
-		int i = 0;
-		
+
+
+		//for queue on second phase	
+
+		//int i = 0;
+
 		//while (i < maxTransactions)
 		////@ invariant QueueInv(ts,?x,?m) &*& m >= maxTransactions &*& x > 0 &*& i >= 0  &*& array_slice(toSend,0,toSend.length, _);
-		
 
 		toSend[0] = ts.dequeue();
 		toSend[1] = ts.dequeue();
 		toSend[2] = ts.dequeue();
 		toSend[3] = ts.dequeue();
 		toSend[4] = ts.dequeue();
-		
+
 		int hash = 0;
 		int random = 0;
-		if (b.head == null) {
-
-			//SimpleBlock x = new SimpleBlock(b.head, 0, toSend);
-			//hash = x.hash();
-			
-		} 
-		else{
 		
-			hash = b.head.hash();
-		}
-		random = hash ^ (hash & 3);	
-		//b.addSimpleBlock(toSend, random);	
-		
-		//@close isBlockchain(b);
-		
-		
-		hash = b.head.hash();
-		
-		//get last two 00s
-		random = hash ^ (hash & 3);		
+		//@assert b.counter  == 0;
 		b.addSummaryBlock(balances, random);
 
-	}
+		if (b.head != null) {
+			hash = b.head.hash();
+			random = hash ^ (hash & 3);	
+			
+			//@assert b == null ? emp : b.head |-> ?l &*& isBlock(l,_) &*& b.counter |-> ?c;
+			//@close isBlockchain(b);
+			b.addSimpleBlock(toSend, random);
 
+
+
+			//hash = b.head.hash();
+
+			//get last two 00s
+			//random = hash ^ (hash & 3);		
+
+		}
+	}
 }
+
 	
 	
 

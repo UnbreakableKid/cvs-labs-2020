@@ -1,6 +1,5 @@
 
 /*@
-
 predicate QueueInv(Queue q; int n, int m) =
 	q.n |-> n
 	&*& q.front |-> ?f
@@ -99,15 +98,16 @@ class Queue {
 
   }
   
-  // public static void main(String[] args) {
+  //public static void main(String[] args) {
 	    
 	//     // 101  111 = 010
 	//     int hash = 90;
 	// 	System.out.println(hash ^ ((hash & 3)));
 	// 	System.out.println(hash & 1);
-  //       System.out.println(hash & 2);
+    //       System.out.println(hash & 2);
 
 
-	// }
+
+//	 }
 
 }
