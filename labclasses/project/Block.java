@@ -212,7 +212,7 @@ class Blockchain {
 			
 			//@assert b.counter  == 1;
 
-			
+						
 			b.addSimpleBlock(toSend, random);
 
 
