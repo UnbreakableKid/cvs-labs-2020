@@ -3,7 +3,7 @@ Construction and Verification of Software 2019/20.
 
 Project assignment to implement and verify a simplified blockchain.
 
-©2020 João Costa Seco, Eduardo Geraldo
+ï¿½2020 Joï¿½o Costa Seco, Eduardo Geraldo
 
 Note: please add your names and student numbers in all files you submit.
 */

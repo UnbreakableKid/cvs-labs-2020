@@ -1,3 +1,4 @@
+import java.util.Random;
 
 /*
 Construction and Verification of Software 2019/20.
@@ -38,9 +39,6 @@ Note: please add your names and student numbers in all files you submit.
 	fixpoint int hashOf3(int h1, int h2, int h3) {
 		return hashOf2(hashOf2(h1,h2),h3);
 	}
-
-
-
 	
 @*/
 
@@ -111,12 +109,13 @@ class Blockchain {
 	//@ ensures isBlockchain(this) &*& this.counter |-> ?c &*& c == 0;
 	{
 	 head = null;
-	 counter = 0;
+	counter = 0;
+	 
 	}
 	// Add methods and fields here.
 	
-	public void addSummaryBlock(int[] balances)
-	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& ValidCheckpoint(balances);
+	public void addSummaryBlock(int[] balances, int hash)
+	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& balances.length == Block.MAX_ID;
 	//@ ensures isBlockchain(this);
 	{ 
 		counter++;
@@ -125,15 +124,17 @@ class Blockchain {
 			return;
 		
 		else{
-		//@assert counter % 10 == 0;
-		SummaryBlock block = new SummaryBlock(head, 1, balances);
+			//@assert counter % 10 == 0;
+		
+		//@close ValidCheckpoint(balances);
+		SummaryBlock block = new SummaryBlock(head, hash, balances);
 		head = block;
 
-		//@close isBlockchain(this);	
+		//@close isBlockchain(this);
 		}	
 	}
 	
-	public void addSimpleBlock(Transaction ts[])
+	public void addSimpleBlock(Transaction ts[], int hash)
 	//@ requires isBlockchain(this) &*& this.counter |-> ?c &*& c >= 0 &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
 	//@ ensures isBlockchain(this);
 	{
@@ -144,9 +145,8 @@ class Blockchain {
 		else{
 			//@assert counter % 10 != 0;
 		
-
 		
-		SimpleBlock block = new SimpleBlock(head, 1, ts);
+		SimpleBlock block = new SimpleBlock(head, hash, ts);
 			
 		head = block;	
 		}
@@ -156,29 +156,74 @@ class Blockchain {
 	//@ requires true;
 	//@ ensures true;
 	{
-		int[] balances = new int[] { 70, 14, 95, 300, 400 };
 
+		int maxTransactions = 5;
+
+		int[] balances = new int[5];
+
+		balances[0] = 100;
+		balances[1] = 0;
+		balances[2] = 0;
+		balances[3] = 0;
+		balances[4] = 0;
+				
 		Blockchain b = new Blockchain();
 		
 		Queue ts = new Queue(100);
 
+		
 		int paying = 50;
 		
-		Transaction t = new Transaction(balances[0], balances[1], paying);
+		Transaction t = new Transaction(1,0, paying);
 		
 		balances[0] -= paying;
 		
 		balances[1] += paying;
-
+		
+		ts.enqueue(t);
+		ts.enqueue(t);
+		ts.enqueue(t);
+		ts.enqueue(t);
 		ts.enqueue(t);
 		
+		Transaction[] toSend = new Transaction[maxTransactions];
 		
-		//b.addSimpleBlock(ts.elements);
+		int i = 0;
+		
+		//while (i < maxTransactions)
+		////@ invariant QueueInv(ts,?x,?m) &*& m >= maxTransactions &*& x > 0 &*& i >= 0  &*& array_slice(toSend,0,toSend.length, _);
+		
+
+		toSend[0] = ts.dequeue();
+		toSend[1] = ts.dequeue();
+		toSend[2] = ts.dequeue();
+		toSend[3] = ts.dequeue();
+		toSend[4] = ts.dequeue();
+		
+		int hash = 0;
+		int random = 0;
+		if (b.head == null) {
+
+			//SimpleBlock x = new SimpleBlock(b.head, 0, toSend);
+			//hash = x.hash();
+			
+		} 
+		else{
+		
+			hash = b.head.hash();
+		}
+		random = hash ^ (hash & 3);	
+		//b.addSimpleBlock(toSend, random);	
 		
 		//@close isBlockchain(b);
+		
+		
+		hash = b.head.hash();
+		
+		//get last two 00s
+		random = hash ^ (hash & 3);		
+		b.addSummaryBlock(balances, random);
 
-		b.addSummaryBlock(balances);
-		System.out.println("done");
 	}
 
 }

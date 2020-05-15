@@ -94,9 +94,20 @@ class Queue {
   //@ensures QueueInv(this, x, m) &*& result == (x==0);
   
   {
-  
-  return n == 0;
-  
+
+    return n == 0;
+
   }
+  
+  // public static void main(String[] args) {
+	    
+	//     // 101  111 = 010
+	//     int hash = 90;
+	// 	System.out.println(hash ^ ((hash & 3)));
+	// 	System.out.println(hash & 1);
+  //       System.out.println(hash & 2);
+
+
+	// }
 
 }
