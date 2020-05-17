@@ -49,7 +49,7 @@ class SummaryBlock implements Block {
 	{
 		//@ open isBlock(previous, h);
 		this.previous = previous;
-		this.hashPrevious = previous == null ? 0 : previous.hash();;
+		this.hashPrevious = previous == null ? 0 : previous.hash();
 		this.random = r;
 		this.balances = balances;
 	}

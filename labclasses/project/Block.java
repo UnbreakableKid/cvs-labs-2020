@@ -107,6 +107,7 @@ class Blockchain {
 	public int getCounter(){
 		return counter;
 		}
+	
 
 	public Blockchain()
 	//@ requires true;
@@ -117,38 +118,63 @@ class Blockchain {
 
 	}
 	// Add methods and fields here.
-
-	public void addSummaryBlock(int[] balances, int hash)
-	//@ requires isBlockchainWithCounter(this, ?c) &*& c >= 0 &*& array_slice(balances,0,balances.length,_) &*& balances.length == Block.MAX_ID &*& (c == 0? (c == 0):(c % 10 == 0));
-	//@ ensures isBlockchainWithCounter(this, c+1);
+	
+	public Block addSummaryBlock(int[] balances, int random)
+	//@ requires isBlockchainWithCounter(this, ?c) &*& c >= 0 &*& array_slice(balances,0,balances.length,?elems) &*& balances.length == Block.MAX_ID &*& (c % 10 == 0);
+	//@ ensures result != null ?isBlockchainWithCounter(this, c+1): isBlockchainWithCounter(this ,c);
 	{
 
-		
 
 		//@close ValidCheckpoint(balances);
-		SummaryBlock block = new SummaryBlock(head, hash, balances);
-		head = block;
+		SummaryBlock block = new SummaryBlock(head, random, balances);
+
+		int hash = block.hash();
+		int previousHash = block.hashPrevious;
+		
+		
+		//@close isBlock(this.head, _);
+
+		if((hash % 100 != 0)){
+		
+			return null;
+		}
+		
+		
+		//@close isBlock(block, hash);
+		this.head = block;
 		counter = counter + 1;
+		//@close isBlock(this.head, _);
+		return block;
+		
+	}	
+	
+	public Block addSimpleBlock(Transaction[] ts, int random)
+	//@ requires isBlockchainWithCounter(this, ?c) &*& c > 0 &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _)  &*& (c % 10) != 0 &*& this.head |-> ?h &*& h.getClass() == SimpleBlock.class ? isBlock(h, _) : isBlock (h ,_ );
+	//@ ensures result != null?isBlockchainWithCounter(this, c+1): isBlockchainWithCounter(this, c);
+	{
+		
+
+		SimpleBlock block = new SimpleBlock(head, random, ts);
+
+		int hash = block.hash();
+				
+		
+
+		if((hash % 100 != 0)){
+		
+			return null;
+		}
+		
+		
+		//@close isBlock(block, hash);
+		this.head = block;
+		counter = counter + 1;
+		//@close isBlock(this.head, _);
+		return block;
 	}
+
 
 	
-
-	public void addSimpleBlock(Transaction[] ts, int hash)
-	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _)  &*& (c !=0? (c == 1):(c % 10 != 0));
-	//@ ensures isBlockchainWithCounter(this, c+1);
-	{
-
-
-
-
-		SimpleBlock block = new SimpleBlock(head, hash, ts);
-
-		head = block;
-		//@close isBlockchain(this);
-		counter++;
-
-	}
-
 	public static void main(String[] args)
 	//@ requires true;
 	//@ ensures true;
@@ -158,14 +184,20 @@ class Blockchain {
 
 		int[] balances = new int[Block.MAX_ID];
 
-		balances[0] = 100;
-		balances[1] = 0;
-		balances[2] = 0;
-		balances[3] = 0;
-		balances[4] = 0;
 
+		for(int i = 0; i < Block.MAX_ID; i++)
+		//@invariant  0 <= i &*& i <= balances.length &*& array_slice(balances, 0, Block.MAX_ID, _);
+		
+		{
+			balances[i] = 0;
+		}
+		
+		balances[0] = 100;
+		
 		Blockchain b = new Blockchain();
 
+
+		
 		int paying = 50;
 
 		Transaction t = new Transaction(1, 0, paying);
@@ -177,36 +209,39 @@ class Blockchain {
 
 		Transaction[] toSend = new Transaction[maxTransactions];
 
-
 		toSend[0] = t;
 			
 
 		int hash = 0;
-		int random = 0;
+
 		
 		//@assert b.counter  == 0;
-		b.addSummaryBlock(balances, random);
+	
+		int random = 1;
+		
+		//@close isBlockchain(b);
+		
+		//@assert array_slice(balances,0,balances.length,_);
 
-		if (b.head != null) {
-			hash = b.head.hash();
-			random = hash ^ (hash & 3);	
+		while(b.addSummaryBlock(balances, random) == null)
+		//@ invariant isBlockchainWithCounter(b, 0);
+		{
 			
-			//@assert b == null ? emp : b.head |-> ?l &*& isBlock(l,_) &*& b.counter |-> ?c;
-			//@close isBlockchain(b);
-			
-			//@assert b.counter  == 1;
-
-						
-			b.addSimpleBlock(toSend, random);
-
-
-
-			//hash = b.head.hash();
-
-			//get last two 00s
-			//random = hash ^ (hash & 3);		
-
+		random++;
+		
+		
 		}
+			
+		
+		//@assert b == null ? emp : b.head |-> ?l &*& isBlock(l,_) &*& b.counter |-> ?c;
+		//@close isBlockchain(b);
+		
+
+
+					
+	
+
+		
 	}
 }
 
