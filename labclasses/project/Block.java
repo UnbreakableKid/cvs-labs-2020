@@ -166,8 +166,6 @@ class Blockchain {
 
 		Blockchain b = new Blockchain();
 
-		//Queue ts = new Queue(100);
-
 		int paying = 50;
 
 		Transaction t = new Transaction(1, 0, paying);
@@ -176,26 +174,12 @@ class Blockchain {
 
 		balances[1] += paying;
 
-		//ts.enqueue(t);
-		//ts.enqueue(t);
-		//ts.enqueue(t);
-		//ts.enqueue(t);
-		//ts.enqueue(t);
 
 		Transaction[] toSend = new Transaction[maxTransactions];
 
 
-		//for queue on second phase	
-
-		//int i = 0;
-
-		//while (i < maxTransactions)
-		////@ invariant QueueInv(ts,?x,?m) &*& m >= maxTransactions &*& x > 0 &*& i >= 0  &*& array_slice(toSend,0,toSend.length, _);
-
-
 		toSend[0] = t;
-		
-		
+			
 
 		int hash = 0;
 		int random = 0;
