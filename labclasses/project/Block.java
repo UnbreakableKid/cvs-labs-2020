@@ -134,7 +134,7 @@ class Blockchain {
 	
 
 	public void addSimpleBlock(Transaction[] ts, int hash)
-	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _)  &*& (c == 1? (c == 1):(c % 10 != 0));
+	//@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _)  &*& (c !=0? (c == 1):(c % 10 != 0));
 	//@ ensures isBlockchainWithCounter(this, c+1);
 	{
 
