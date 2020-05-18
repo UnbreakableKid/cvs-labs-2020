@@ -20,7 +20,7 @@ Note: please add your names and student numbers in all files you submit.
 */
 
 
-final class SimpleBlock implements Block {
+class SimpleBlock implements Block {
 	/*@ predicate BlockInv(Block p, int hp, int h) = 
 			this.previous |-> p
 		&*& this.hashPrevious |-> hp
@@ -71,7 +71,7 @@ final class SimpleBlock implements Block {
 	
 	public SimpleBlock(Block previous, int r, Transaction ts[]) 
 	//@ requires isBlock(previous, ?h) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-	//@ ensures BlockInv(_,_,_) &*& isBlock(previous, h);
+	//@ ensures BlockInv(_,_,_);
 	{
 		//@ open isBlock(previous, h);
 		this.previous = previous;
