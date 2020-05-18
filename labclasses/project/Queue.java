@@ -1,3 +1,4 @@
+﻿import java.util.Random;
 
 /*@
 predicate QueueInv(Queue q; int n, int m) =
@@ -98,16 +99,19 @@ class Queue {
 
   }
   
-  //public static void main(String[] args) {
+  // public static void main(String[] args) {
 	    
 	//     // 101  111 = 010
-	//     int hash = 90;
-	// 	System.out.println(hash ^ ((hash & 3)));
-	// 	System.out.println(hash & 1);
-    //       System.out.println(hash & 2);
+  //     int hash = 90;
+  //     Random r = new Random();
+  //     int x = hash ^ ((hash & 3));
+  //     System.out.println(x);
+
+  //     System.out.println((hash ^ r.nextInt(10000)) ^(x & 3) );
 
 
 
-//	 }
+
+	//  }
 
 }
