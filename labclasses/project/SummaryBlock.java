@@ -45,7 +45,7 @@ final class SummaryBlock implements Block {
 		&*& array_slice(balances,0,balances.length,_)
 		&*& ValidCheckpoint(balances);
 	@*/
-	//@ ensures BlockInv(previous, h, _) &*& isBlock(previous, h);
+	//@ ensures BlockInv(previous, h, _);
 	{
 		//@ open isBlock(previous, h);
 		this.previous = previous;

@@ -58,8 +58,8 @@ Note: please add your names and student numbers in all files you submit.
 	predicate Positive(unit a, int v; unit n) = v >= 0 &*& n == unit;
 	
 	predicate isValidBalances(int[] balances, int size)=
-		array_slice(balances, 0, size, ?elems) 
-		&*& array_slice_deep(balances, 0, size, Positive, unit, elems,_);
+
+		 array_slice_deep(balances, 0, size, Positive, unit, _,_);
 	
 @*/
 
@@ -76,7 +76,7 @@ Note: please add your names and student numbers in all files you submit.
 interface Block {
 	//@ predicate BlockInv(Block p, int hp, int h);
 
-	static final int MAX_ID = 100;
+	static final int MAX_ID = 2;
 
 	int balanceOf(int id);
 	//@ requires BlockInv(?p, ?hp, ?h) &*& ValidID(id) == true;
@@ -103,6 +103,7 @@ interface Block {
 class Blockchain {
 	Block head;
 	int counter;
+	
 
 	public int getCounter() {
 		return counter;
@@ -117,7 +118,7 @@ class Blockchain {
 		int[] balances = new int[Block.MAX_ID];
 		balances[0] = 100;
 		//@close ValidCheckpoint(balances);
-		SummaryBlock block = new SummaryBlock(head, 0, balances);
+		SummaryBlock block = new SummaryBlock(null, 0, balances);
 		head = block;
 		counter = 1;
 		//@close isBlock(head, _);
@@ -145,7 +146,7 @@ class Blockchain {
 
 		if (block.hash() % 100 != 0) {
 
-		//@ close isBlock(x, _);
+		//@ open isBlock(block, _);
 		return null;
 			
 		}
@@ -160,36 +161,36 @@ class Blockchain {
 
 	}
 
-	public SimpleBlock addSimpleBlock(Block x, Transaction[] ts, int random)
-	/*@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 
+	public void addSimpleBlock(Transaction[] ts, int random)
+	/*@ requires isBlockchainWithCounter(this, ?c) 
 	&*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_)
-	&*& (c !=0? (c == 1):(c % 10 != 0))
-	&*& x!= null
-	&*& isBlock(x,_);
-	
+	&*& (c % 10 != 0);
 	@*/ 
-	/*@ ensures result == null? isBlockchainWithCounter(this, c) :
-	isBlockchainWithCounter(this, c+1);
-	@*/
+	/*@ ensures isBlockchainWithCounter(this, c+1); @*/
 	{
-		//@ assert array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-		SimpleBlock block = new SimpleBlock(x, random, ts);
 
-		if (block.hash() % 100 != 0) {
+		//@open isBlockchainWithCounter(this,c);
+		//@open isBlockchain(this);
+		//@open isBlock(this.head,_);
 
-		//@ close isBlock(x, _);
-		return null;
-			
+		SimpleBlock block = new SimpleBlock(head, random, ts);
+
+		while (block.hash() % 100 != 0)
+		//@ invariant block != null;
+		{
+
+			random++;
+			block = new SimpleBlock(head, random, ts);
 		}
 
-	
 		this.head = block;
-			counter = counter + 1;
+		counter = counter + 1;
 
-			//@close isBlock(head, _);
-			return block;
+		//@close isBlock(head, _);
+		return block;
 
 	}
+	
 	
 	// public Transaction doTransaction(Block head, int sender, int receiver, int amount)
 	// //@requires isBlockchain(this) &*& isBlock(head,_) &*& amount > 0 &*& ValidID(sender) == true &*& ValidID(receiver) == true &*& head != null;
@@ -237,61 +238,62 @@ class Blockchain {
 		int[] balances = new int[Block.MAX_ID];
 
 		int counter = 0;
-		while (counter < Block.MAX_ID)
-		//@invariant 0 <= counter &*& counter <= Block.MAX_ID;
-		{
-
-			counter++;
-
-		}
 
 		balances[0] = 100;
-		balances[1] = 0;
+		balances[1] = 50;
+		
+
 		
 		Blockchain b = new Blockchain();
 
 		int paying = 50;
 
 		//Transaction t = doTransaction(b.head, 1, 0, paying);
-		Transaction t = new Transaction( 1, 0, paying);
 		
-		balances[0] -= paying;
+		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
+		
+		//balances[0] -= paying;
+		
+		//balances[1] += paying;
+		
+		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
+		
+		//b.inspectBlock(b.head, 1);
 
-		balances[1] += paying;
-
-		Transaction[] toSend = new Transaction[maxTransactions];
-
-		toSend[0] = t;
-
+		
 		//@assert b.counter == 1;
 		int random = 0;
-
+		
 		//@assert b.counter == 1;
-
 		
-		//@assert  b.head |-> ?h &*& h != null;
+		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
 		
-
-		while (b.addSimpleBlock(b.head ,toSend, random) == null)
-		/*@invariant isBlockchainWithCounter(b, 1) 
-		&*& array_slice(balances,0,balances.length,_) &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_);@*/
-		{
-
-			random++;
-
-		}
-
-		//@ close isValidBalances(balances, balances.length);
+		//@open isBlockchainWithCounter(b,1);
+		
+				//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
+				
+				Transaction t = new Transaction( 1, 0, paying);
+		
+		Transaction[] toSend = new Transaction[maxTransactions];
+		
+				
+		toSend[0] = t;
+		Block tmp = b.head;
+		 
+		b.addSimpleBlock(toSend, random);
+		
+			
 		while (b.addSummaryBlock(b.head, balances, random) == null)
-		/*@invariant isBlockchainWithCounter(b, 0) 
+		/*@invariant isBlockchainWithCounter(b, 1) 
 		&*& isValidBalances(balances, Block.MAX_ID);@*/
 		{
-			random++;
+		random++;
 		}
 		//@close isBlockchain(b);
-
-		//@assert b.counter == 1;
-
+		
+		////@assert b.counter == 1;
+		
+		
 		
 	}
 }
