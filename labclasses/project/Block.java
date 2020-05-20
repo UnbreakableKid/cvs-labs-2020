@@ -140,19 +140,16 @@ class Blockchain {
 		this.counter |-> ?c	
 		&*& this.head |-> ?h
 		&*& b.BlockInv(h, _,_)
-		&*& h != null 
-		
-		&*& (c == 0 || c == simpleToSummaryRatio)
-;
+		&*& h != null
+		&*& c > 0
+		;
 		@*/
 		//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
 		{
-			
-
-		
+					
 		if (b.hash() % 100 != 0) {
-			//@close isBlock(head,_);
-			//@close isBlockchain(this);
+			//@open b.BlockInv(h, _,_);
+			//@close isBlockchainWithCounter(this, c);
 			return false;
 		}
 		this.head = b;
@@ -161,19 +158,20 @@ class Blockchain {
 		}
 
 	public boolean addSimpleBlock(SimpleBlock b)
-			/*@ requires
-			this.counter |-> ?c	
-			&*& this.head |-> ?h
-			&*& b.BlockInv(h, _,_)
-			&*& h != null 
-			;
+		/*@ requires	this.counter |-> ?c	
+		&*& this.head |-> ?h
+		&*& b.BlockInv(h, _,_)
+		&*& h != null
+		&*& c > 0
+		;
 			@*/
 			//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
 	{
 
 		if (b.hash() % 100 != 0) {
-			//@close isBlock(head,_);
-			//@close isBlockchain(this);
+
+		//@open b.BlockInv(h, _,_);
+		//@close isBlockchainWithCounter(this, c);
 			return false;
 		}
 		this.head = b;
@@ -190,11 +188,7 @@ class Blockchain {
 
 		int[] balances = new int[Block.MAX_ID];
 
-		balances[0] = 100;
-		balances[1] = 50;
-		
-
-		
+	
 		Blockchain b = new Blockchain();
 
 		int paying = 50;
@@ -212,32 +206,32 @@ class Blockchain {
 		int random = 0;
 		int i = 0;
 		while(i <= blocksToCreate)
-		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, _) &*& array_slice(balances,0,balances.length,_) &*& [_] System.out |-> o &*& o != null;
+		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, ?c) &*& c > 0 &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_) &*& array_slice(balances, 0, balances.length,_)  &*& [_] System.out |-> o &*& o != null;
 		{	
 			
-
-			if(b.getCounter() % simpleToSummaryRatio == 0){
+			
+			if (b.getCounter() % simpleToSummaryRatio != 0) {
 				
-				//@close ValidCheckpoint(balances);
-				SummaryBlock block = new SummaryBlock(b.head, random, balances);	
-				System.out.print("Adding SummaryBlock... ");
-
-				//@open block.BlockInv(_, _,_);
-				//@close isBlockchainWithCounter(b, _);
-
 				
-				if(b.addSummaryBlock(block)){
+				SimpleBlock block = new SimpleBlock(b.head, random, toSend);
+				System.out.print("Adding SimpleBlock... ");
+				if(b.addSimpleBlock(block)){
 					System.out.println("Success");
 					i++;
 				}
 				else
 					System.out.println("Failed");
+
 			}
 			else
 			{
-				SimpleBlock block = new SimpleBlock(b.head, random, toSend);
-				System.out.print("Adding SimpleBlock... ");
-				if(b.addSimpleBlock(block)){
+				
+				//@close ValidCheckpoint(balances);
+				SummaryBlock block = new SummaryBlock(b.head, random, balances);	
+				System.out.print("Adding SummaryBlock... ");
+						
+				
+				if(b.addSummaryBlock(block)){
 					System.out.println("Success");
 					i++;
 				}
