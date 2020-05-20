@@ -71,14 +71,13 @@ final class SimpleBlock implements Block {
 	
 	public SimpleBlock(Block previous, int r, Transaction ts[]) 
 	//@ requires isBlock(previous, ?h) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-	//@ ensures BlockInv(_,_,_);
+	//@ ensures BlockInv(previous,_,_);
 	{
 		//@ open isBlock(previous, h);
 		this.previous = previous;
 		this.hashPrevious = previous == null ? 0 : previous.hash();
 		this.random = r;
 		this.transactions = ts;
-		//@close isBlock(previous, h);
 	}
 	
 	public int balanceOf(int id)

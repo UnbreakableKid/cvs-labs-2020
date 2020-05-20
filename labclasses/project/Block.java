@@ -131,7 +131,7 @@ class Blockchain {
 	/*@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*&
 	array_slice(balances,0,balances.length,_) 
 	&*& balances.length == Block.MAX_ID
-	&*& (c == 0? (c == 0):(c % 10 == 0))
+	&*& (c == 0 || c == 10)
 	&*& x != null
 	&*& isBlock(x, _);
 	
@@ -161,32 +161,26 @@ class Blockchain {
 
 	}
 
-	public void addSimpleBlock(Transaction[] ts, int random)
+	public Block addSimpleBlock(Transaction[] ts, int random)
 	/*@ requires isBlockchainWithCounter(this, ?c) 
 	&*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_)
-	&*& (c % 10 != 0);
+	&*& c  > 0 &*& c < 10;
 	@*/ 
-	/*@ ensures isBlockchainWithCounter(this, c+1); @*/
+	/*@ ensures result == null? isBlockchainWithCounter(this, c) : isBlockchainWithCounter(this, c+1); @*/
 	{
 
-		//@open isBlockchainWithCounter(this,c);
-		//@open isBlockchain(this);
-		//@open isBlock(this.head,_);
 
 		SimpleBlock block = new SimpleBlock(head, random, ts);
-
-		while (block.hash() % 100 != 0)
-		//@ invariant block != null;
-		{
-
-			random++;
-			block = new SimpleBlock(head, random, ts);
+		int hash = block.hash();
+		
+		if(hash % 100 != 0){
+			//@open block.BlockInv(head, _, _);
+			//@close isBlock(head, _);
+			return null;
 		}
 
 		this.head = block;
 		counter = counter + 1;
-
-		//@close isBlock(head, _);
 		return block;
 
 	}
@@ -250,29 +244,16 @@ class Blockchain {
 
 		//Transaction t = doTransaction(b.head, 1, 0, paying);
 		
-		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
+		
 		
 		//balances[0] -= paying;
 		
-		//balances[1] += paying;
-		
-		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
-		
+		//balances[1] += paying
 		//b.inspectBlock(b.head, 1);
 
-		
-		//@assert b.counter == 1;
 		int random = 0;
-		
-		//@assert b.counter == 1;
-		
-		//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
-		
-		//@open isBlockchainWithCounter(b,1);
-		
-				//@ assert array_slice_deep(balances, 0, Block.MAX_ID, Positive, unit, _,_);
 				
-				Transaction t = new Transaction( 1, 0, paying);
+		Transaction t = new Transaction( 1, 0, paying);
 		
 		Transaction[] toSend = new Transaction[maxTransactions];
 		
@@ -280,18 +261,26 @@ class Blockchain {
 		toSend[0] = t;
 		Block tmp = b.head;
 		 
-		b.addSimpleBlock(toSend, random);
+		for(int i = 1; i <= 9; i++){
+			b.addSimpleBlock(toSend, random);		
+		}
+		
+
 		
 			
-		while (b.addSummaryBlock(b.head, balances, random) == null)
-		/*@invariant isBlockchainWithCounter(b, 1) 
-		&*& isValidBalances(balances, Block.MAX_ID);@*/
-		{
-		random++;
-		}
-		//@close isBlockchain(b);
+		//b.addSummaryBlock(b.head, balances, random);
 		
-		////@assert b.counter == 1;
+		
+		
+		
+		
+		
+	}
+}
+
+class SimpleWorker {
+
+	public static void main(String[] args) {
 		
 		
 		
