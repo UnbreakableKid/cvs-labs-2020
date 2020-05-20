@@ -1,4 +1,4 @@
-﻿/*onstruction and Verification of Software 2019/20.
+﻿/*Construction and Verification of Software 2019/20.
 
 Project assignment to implement and verify a simplified blockchain.
 
@@ -101,17 +101,24 @@ interface Block {
  */
 
 class Blockchain {
+
+	final static int simpleToSummaryRatio = 3;
+	final static int blocksToCreate = 4; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
+
 	Block head;
 	int counter;
 	
 
-	public int getCounter() {
+	public int getCounter() 
+	//@ requires isBlockchainWithCounter(this, ?c);
+	//@ ensures result == c &*& isBlockchainWithCounter (this, c);
+	{
 		return counter;
 	}
 
 	public Blockchain()
 	//@ requires true;
-	//@ ensures isBlockchain(this) &*& this.counter |-> ?c &*& c == 1;
+	//@ ensures isBlockchainWithCounter(this, 1);
 	{
 	
 		
@@ -122,71 +129,168 @@ class Blockchain {
 		head = block;
 		counter = 1;
 		//@close isBlock(head, _);
-		
-
+	
 	}
 	// Add methods and fields here.
 
-	public SummaryBlock addSummaryBlock(Block x, int[] balances, int random)
-	/*@ requires isBlockchainWithCounter(this, ?c)&*& c >= 0 &*&
-	array_slice(balances,0,balances.length,_) 
-	&*& balances.length == Block.MAX_ID
-	&*& (c == 0 || c == 10)
-	&*& x != null
-	&*& isBlock(x, _);
-	
-	@*/
-	
-	/*@ ensures result == null? isBlockchainWithCounter(this, c): isBlockchainWithCounter(this, c+1);@*/
-	{
-		//@close ValidCheckpoint(balances);
-
-		SummaryBlock block = new SummaryBlock(x, random, balances);
 
 
-		if (block.hash() % 100 != 0) {
-
-		//@ open isBlock(block, _);
-		return null;
-			
-		}
-
-	
-		this.head = block;
-			counter = counter + 1;
-
-			//@close isBlock(head, _);
-			return block;
-
-
-	}
-
-	public Block addSimpleBlock(Transaction[] ts, int random)
-	/*@ requires isBlockchainWithCounter(this, ?c) 
-	&*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_)
-	&*& c  > 0 &*& c < 10;
-	@*/ 
-	/*@ ensures result == null? isBlockchainWithCounter(this, c) : isBlockchainWithCounter(this, c+1); @*/
-	{
-
-
-		SimpleBlock block = new SimpleBlock(head, random, ts);
-		int hash = block.hash();
+	public boolean addSummaryBlock(SummaryBlock b)
+		/*@ requires
+		this.counter |-> ?c	
+		&*& this.head |-> ?h
+		&*& b.BlockInv(h, _,_)
+		&*& h != null 
 		
-		if(hash % 100 != 0){
-			//@open block.BlockInv(head, _, _);
-			//@close isBlock(head, _);
-			return null;
+		&*& (c == 0 || c == simpleToSummaryRatio)
+;
+		@*/
+		//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
+		{
+			
+
+		
+		if (b.hash() % 100 != 0) {
+			//@close isBlock(head,_);
+			//@close isBlockchain(this);
+			return false;
+		}
+		this.head = b;
+		this.counter++;
+		return true;	
 		}
 
-		this.head = block;
-		counter = counter + 1;
-		return block;
+	public boolean addSimpleBlock(SimpleBlock b)
+			/*@ requires
+			this.counter |-> ?c	
+			&*& this.head |-> ?h
+			&*& b.BlockInv(h, _,_)
+			&*& h != null 
+			;
+			@*/
+			//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
+	{
 
+		if (b.hash() % 100 != 0) {
+			//@close isBlock(head,_);
+			//@close isBlockchain(this);
+			return false;
+		}
+		this.head = b;
+		this.counter++;
+		return true;
 	}
+
+	public static void main(String[] args)
+	//@ requires [_] System.out |-> ?o &*& o != null;
+	//@ ensures true;
+	{
+
+		int maxTransactions = 1;
+
+		int[] balances = new int[Block.MAX_ID];
+
+		balances[0] = 100;
+		balances[1] = 50;
+		
+
+		
+		Blockchain b = new Blockchain();
+
+		int paying = 50;
+
+		//Transaction t = doValidTransaction(b.head, 1, 0, paying);
+	
+				
+		Transaction t = new Transaction( 1, 0, paying);
+		
+		Transaction[] toSend = new Transaction[maxTransactions];
+		
+	
+				
+		toSend[0] = t;
+		int random = 0;
+		int i = 0;
+		while(i <= blocksToCreate)
+		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, _) &*& array_slice(balances,0,balances.length,_) &*& [_] System.out |-> o &*& o != null;
+		{	
+			
+
+			if(b.getCounter() % simpleToSummaryRatio == 0){
+				
+				//@close ValidCheckpoint(balances);
+				SummaryBlock block = new SummaryBlock(b.head, random, balances);	
+				System.out.print("Adding SummaryBlock... ");
+
+				//@open block.BlockInv(_, _,_);
+				//@close isBlockchainWithCounter(b, _);
+
+				
+				if(b.addSummaryBlock(block)){
+					System.out.println("Success");
+					i++;
+				}
+				else
+					System.out.println("Failed");
+			}
+			else
+			{
+				SimpleBlock block = new SimpleBlock(b.head, random, toSend);
+				System.out.print("Adding SimpleBlock... ");
+				if(b.addSimpleBlock(block)){
+					System.out.println("Success");
+					i++;
+				}
+				else
+					System.out.println("Failed");
+			}
+			random++;
+		}
+		
+	}
+
+	// public SummaryBlock createSummaryBlock(Block x, int[] balances, int random)
+	// /*@ requires isBlockchainWithCounter(this, ?c) &*& c >= 0 &*&
+	// array_slice(balances,0,balances.length,_) 
+	// &*& balances.length == Block.MAX_ID
+	// &*& (c == 0 || c == 10)
+	// &*& x != null
+	// &*& isBlock(x, _);
+	
+	// @*/
+	
+	// /*@ ensures isBlock(result, _ ); @*/
+	// {
+	// 	//@close ValidCheckpoint(balances);
+
+	// 	SummaryBlock block = new SummaryBlock(head, random, balances);
+
+	
+	// 	return block;
+
+
+	// }
+
+	// public Block createSimpleBlock(Transaction[] ts, int random)
+	// /*@ requires isBlockchainWithCounter(this, ?c) 
+	// &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_)
+	// &*& c  > 0 &*& c < 10;
+	// @*/ 
+	// /*@ ensures result == null? isBlockchainWithCounter(this, c) : isBlockchainWithCounter(this, c+1); @*/
+	// {
+
+
+	// 	SimpleBlock block = new SimpleBlock(head, random, ts);
+
+
+	// 	this.head = block;
+	// 	counter = counter + 1;
+	// 	return block;
+
+	// }
 	
 	
-	// public Transaction doTransaction(Block head, int sender, int receiver, int amount)
+	// public Transaction doValidTransaction(Block head, int sender, int receiver, int amount)
 	// //@requires isBlockchain(this) &*& isBlock(head,_) &*& amount > 0 &*& ValidID(sender) == true &*& ValidID(receiver) == true &*& head != null;
 	// //@ensures result == null? TransInv(result, sender, receiver, 0): TransInv(result, sender, receiver, amount);  
 	// {
@@ -222,67 +326,5 @@ class Blockchain {
 	// 	return t;
 	// }
 
-	public static void main(String[] args)
-	//@ requires true;
-	//@ ensures true;
-	{
-
-		int maxTransactions = 1;
-
-		int[] balances = new int[Block.MAX_ID];
-
-		int counter = 0;
-
-		balances[0] = 100;
-		balances[1] = 50;
-		
-
-		
-		Blockchain b = new Blockchain();
-
-		int paying = 50;
-
-		//Transaction t = doTransaction(b.head, 1, 0, paying);
-		
-		
-		
-		//balances[0] -= paying;
-		
-		//balances[1] += paying
-		//b.inspectBlock(b.head, 1);
-
-		int random = 0;
-				
-		Transaction t = new Transaction( 1, 0, paying);
-		
-		Transaction[] toSend = new Transaction[maxTransactions];
-		
-				
-		toSend[0] = t;
-		Block tmp = b.head;
-		 
-		for(int i = 1; i <= 9; i++){
-			b.addSimpleBlock(toSend, random);		
-		}
-		
-
-		
-			
-		//b.addSummaryBlock(b.head, balances, random);
-		
-		
-		
-		
-		
-		
-	}
-}
-
-class SimpleWorker {
-
-	public static void main(String[] args) {
-		
-		
-		
-	}
+	
 }
