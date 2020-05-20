@@ -100,7 +100,7 @@ interface Block {
  * with the expected operations to add and inspect the blocks
  */
 
-class Blockchain {
+final class Blockchain {
 
 	final static int simpleToSummaryRatio = 3;
 	final static int blocksToCreate = 4; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
@@ -133,7 +133,69 @@ class Blockchain {
 	}
 	// Add methods and fields here.
 
+	public int[] getBalances(SimpleBlock block) 
+	//@requires block != null &*& isBlock(block,?h);
+	//@ensures isBlock(block,h) &*& array_slice(result, 0, result.length, _) &*& ValidCheckpoint(result) &*& result.length == Block.MAX_ID;
+	{
+		Block previous = block.getPrevious();
+		int[] balances = new int[Block.MAX_ID];
+		
+		
+		if(previous != null){
+			if(previous instanceof SummaryBlock){
+				
+				//@open block.BlockInv(previous,?h2,_);
 
+				for (int i = 0; i < balances.length; i++) 
+				//@invariant array_slice(balances, 0, Block.MAX_ID, _) &*& 0 <= i &*& i <= Block.MAX_ID &*& isBlock(previous, h2);
+				{
+		
+					balances[i] += previous.balanceOf(i);
+				}
+				//@assert balances.length == Block.MAX_ID;
+				//@close ValidCheckpoint(balances);
+				return balances;
+			}
+			else if(previous instanceof SimpleBlock){
+				//@open block.BlockInv(previous,_,_);
+				balances = getBalances((SimpleBlock)previous);
+				//@assert balances.length == Block.MAX_ID;
+			}
+		}
+		
+		//@assert balances.length == Block.MAX_ID;
+		for (int j = 0; j < balances.length; j++) 
+		//@invariant array_slice(balances, 0, Block.MAX_ID, _) &*& isBlock(block, h) &*& j >= 0 &*& j <= Block.MAX_ID;
+		{
+			if(j >= Block.MAX_ID){
+				break;
+			}
+			balances[0] = balances[0] + block.balanceOf(j);
+		}
+		
+		//@assert balances.length == Block.MAX_ID;
+		//@close ValidCheckpoint(balances);
+		return balances;
+		
+		/*if(previous == null || (current instanceof SummaryBlock)){
+			//@open block.BlockInv(previous,_,_);
+
+			balances = getBalances((SimpleBlock)previous);
+			//@close isBlock(previous,_);
+			//@close block.BlockInv(previous,_,_);
+			//@close isBlock(block,_);
+			for (int i = 0; i < Block.MAX_ID; i++)
+			//@invariant isBlock(block,_) &*&  block != null &*& array_slice(balances, 0, Block.MAX_ID, _) &*& 0 <= i &*& i <= Block.MAX_ID;
+			{
+			
+				balances[i] += block.balanceOf(i);
+			}
+		} else{
+			return null;
+		}*/
+			
+		
+	}
 
 	public boolean addSummaryBlock(SummaryBlock b)
 		/*@ requires
@@ -200,20 +262,22 @@ class Blockchain {
 		
 		Transaction[] toSend = new Transaction[maxTransactions];
 		
-	
 				
 		toSend[0] = t;
 		int random = 0;
 		int i = 0;
 		while(i <= blocksToCreate)
-		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, ?c) &*& c > 0 &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_) &*& array_slice(balances, 0, balances.length,_)  &*& [_] System.out |-> o &*& o != null;
+		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, ?c) &*& c > 0 &*& array_slice(balances, 0, balances.length, _)  &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_) &*& [_] System.out |-> o &*& o != null;
 		{	
 			
 			
 			if (b.getCounter() % simpleToSummaryRatio != 0) {
+			
+				Transaction t1 = new Transaction( 1, 0, paying);
+				Transaction[] toSend1 = new Transaction[maxTransactions];
+				toSend1[0] = t1;
 				
-				
-				SimpleBlock block = new SimpleBlock(b.head, random, toSend);
+				SimpleBlock block = new SimpleBlock(b.head, random, toSend1);
 				System.out.print("Adding SimpleBlock... ");
 				if(b.addSimpleBlock(block)){
 					System.out.println("Success");
@@ -221,15 +285,17 @@ class Blockchain {
 				}
 				else
 					System.out.println("Failed");
-
 			}
 			else
 			{
-				
-				//@close ValidCheckpoint(balances);
-				SummaryBlock block = new SummaryBlock(b.head, random, balances);	
+				System.out.println("Fetching balances... ");
+				//@open isBlockchainWithCounter(b, _);
+				//@open isBlockchain(b);
+				//@close isBlock(b.head,_);
+				int[]balances1 = b.getBalances((SimpleBlock)b.head);
+				SummaryBlock block = new SummaryBlock(b.head, random, balances1);
 				System.out.print("Adding SummaryBlock... ");
-						
+					
 				
 				if(b.addSummaryBlock(block)){
 					System.out.println("Success");
@@ -237,6 +303,8 @@ class Blockchain {
 				}
 				else
 					System.out.println("Failed");
+					
+				
 			}
 			random++;
 		}
@@ -284,35 +352,21 @@ class Blockchain {
 	// }
 	
 	
-	// public Transaction doValidTransaction(Block head, int sender, int receiver, int amount)
+	// public Transaction doValidTransaction(int sender, int receiver, int amount)
 	// //@requires isBlockchain(this) &*& isBlock(head,_) &*& amount > 0 &*& ValidID(sender) == true &*& ValidID(receiver) == true &*& head != null;
 	// //@ensures result == null? TransInv(result, sender, receiver, 0): TransInv(result, sender, receiver, amount);  
 	// {
 
 	// 	int balanceOfSender = 0;
 		
-	// 	//@open isBlock(head, _);
-	// 	while ((head instanceof SimpleBlock) && head != null)
-	// 	//@ invariant true; 
-	// 	{
-
-	// 		//@close isBlock(head, _);
-	// 		balanceOfSender += head.balanceOf(sender);
-			
-	
-	// 		head = head.getPrevious();
-
-	// 		//@close isBlock(head, _);
-	// 	}
+	// 	int[] balances = getBalances();
 		
 
-	// 	balanceOfSender += head.balanceOf(sender);
+	// 	balances[sender] += head.balanceOf(sender);
 
 	// 	if (balanceOfSender < 0) {
-			
-	// 		Transaction t = new Transaction(sender, receiver, 0);
-			
-	// 		return t;
+						
+	// 		return null;
 	// 	}
 	// 	//@assert amount > 0;
 	// 	Transaction t = new Transaction(sender, receiver, amount);
