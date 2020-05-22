@@ -1,4 +1,7 @@
-﻿/*Construction and Verification of Software 2019/20.
+﻿
+
+
+/*Construction and Verification of Software 2019/20.
 
 Project assignment to implement and verify a simplified blockchain.
 
@@ -102,8 +105,8 @@ interface Block {
 
 final class Blockchain {
 
-	final static int simpleToSummaryRatio = 3;
-	final static int blocksToCreate = 4; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
+	final static int simpleToSummaryRatio = 10;
+	final static int blocksToCreate = 20; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
 
 	Block head;
 	int counter;
@@ -150,30 +153,28 @@ final class Blockchain {
 				//@invariant array_slice(balances, 0, Block.MAX_ID, _) &*& 0 <= i &*& i <= Block.MAX_ID &*& isBlock(previous, h2);
 				{
 		
-					balances[i] += previous.balanceOf(i);
+					balances[i] = previous.balanceOf(i);
 				}
-				//@assert balances.length == Block.MAX_ID;
+
 				//@close ValidCheckpoint(balances);
 				return balances;
 			}
 			else if(previous instanceof SimpleBlock){
 				//@open block.BlockInv(previous,_,_);
 				balances = getBalances((SimpleBlock)previous);
-				//@assert balances.length == Block.MAX_ID;
+
 			}
 		}
 		
-		//@assert balances.length == Block.MAX_ID;
+
 		for (int j = 0; j < balances.length; j++) 
 		//@invariant array_slice(balances, 0, Block.MAX_ID, _) &*& isBlock(block, h) &*& j >= 0 &*& j <= Block.MAX_ID;
 		{
-			if(j >= Block.MAX_ID){
-				break;
-			}
-			balances[0] = balances[0] + block.balanceOf(j);
+			
+			balances[j] = block.balanceOf(j);
 		}
 		
-		//@assert balances.length == Block.MAX_ID;
+
 		//@close ValidCheckpoint(balances);
 		return balances;
 		
@@ -206,7 +207,7 @@ final class Blockchain {
 		&*& c > 0
 		;
 		@*/
-		//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
+		//@ ensures result == true? isBlockchainWithCounter(this, c+1): isBlockchainWithCounter(this, c);
 		{
 					
 		if (b.hash() % 100 != 0) {
@@ -246,10 +247,9 @@ final class Blockchain {
 	//@ ensures true;
 	{
 
-		int maxTransactions = 1;
+		int maxTransactions = 2;
 
 		int[] balances = new int[Block.MAX_ID];
-
 	
 		Blockchain b = new Blockchain();
 
@@ -259,54 +259,79 @@ final class Blockchain {
 	
 				
 		Transaction t = new Transaction( 1, 0, paying);
+		Transaction t3 = new Transaction( 0, 1, paying);
 		
 		Transaction[] toSend = new Transaction[maxTransactions];
 		
 				
 		toSend[0] = t;
+		//@ array_slice_deep_close(toSend,0, TransHash, unit);
+		toSend[1] = t3;
+		//@ array_slice_deep_close(toSend,1, TransHash, unit);
 		int random = 0;
 		int i = 0;
 		while(i <= blocksToCreate)
-		//@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, ?c) &*& c > 0 &*& array_slice(balances, 0, balances.length, _)  &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_) &*& [_] System.out |-> o &*& o != null;
-		{	
-			
-			
+		/*@invariant i >= 0 &*& i <= blocksToCreate+1 &*& isBlockchainWithCounter(b, ?c) &*& c > 0 
+		&*& array_slice(balances, 0, balances.length, _) &*& balances.length == Block.MAX_ID &*& array_slice_deep(toSend,0,toSend.length,TransHash,unit,_,_) &*& [_] System.out |-> o &*& o != null;
+		@*/
+		{
+
 			if (b.getCounter() % simpleToSummaryRatio != 0) {
-			
-				Transaction t1 = new Transaction( 1, 0, paying);
-				Transaction[] toSend1 = new Transaction[maxTransactions];
-				toSend1[0] = t1;
-				
-				SimpleBlock block = new SimpleBlock(b.head, random, toSend1);
+
+				SimpleBlock block = new SimpleBlock(b.head, random, toSend);
+
+				toSend = new Transaction[maxTransactions];
+
 				System.out.print("Adding SimpleBlock... ");
-				if(b.addSimpleBlock(block)){
+				if (b.addSimpleBlock(block)) {
 					System.out.println("Success");
 					i++;
-				}
-				else
+				} else {
 					System.out.println("Failed");
-			}
-			else
-			{
+				}
+
+				//just for simulation purposes
+				Transaction t1 = new Transaction(1, 0, paying);
+				Transaction t2 = new Transaction(0, 1, paying);
+				toSend[0] = t1;
+				//@ array_slice_deep_close(toSend,0, TransHash, unit);
+				toSend[1] = t2;
+				//@ array_slice_deep_close(toSend,1, TransHash, unit);
+			} else {
+
 				System.out.println("Fetching balances... ");
 				//@open isBlockchainWithCounter(b, _);
 				//@open isBlockchain(b);
 				//@close isBlock(b.head,_);
-				int[]balances1 = b.getBalances((SimpleBlock)b.head);
-				SummaryBlock block = new SummaryBlock(b.head, random, balances1);
+				//balances = b.getBalances((SimpleBlock)b.head);
+				//SummaryBlock block = new SummaryBlock(b.head, random, balances);
+
+				//@close ValidCheckpoint(balances);
+				SummaryBlock block = new SummaryBlock(b.head, random, balances);
+
 				System.out.print("Adding SummaryBlock... ");
-					
-				
-				if(b.addSummaryBlock(block)){
+
+				if (b.addSummaryBlock(block)) {
 					System.out.println("Success");
+					balances = new int[Block.MAX_ID];
+
+					for (int j = 0; j < balances.length; j++)
+					//@invariant array_slice(balances, 0, Block.MAX_ID, _) &*& 0 <= j &*& j <=  balances.length &*& isBlockchain(b);
+					{
+
+						balances[j] = b.head.balanceOf(j);
+					}
 					i++;
-				}
-				else
+				} else {
 					System.out.println("Failed");
-					
-				
+
+					balances = new int[Block.MAX_ID];
+
+					balances = b.getBalances((SimpleBlock) b.head);
+				}
 			}
 			random++;
+
 		}
 		
 	}

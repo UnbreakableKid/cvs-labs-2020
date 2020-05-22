@@ -1,6 +1,4 @@
-﻿import java.util.Random;
-
-/*@
+﻿/*@
 predicate QueueInv(Queue q; int n, int m) =
 	q.n |-> n
 	&*& q.front |-> ?f
