@@ -38,6 +38,8 @@ Note: please add your names and student numbers in all files you submit.
 		return hashOf2(hashOf2(h1,h2),h3);
 	}
 	
+
+	
 @*/
 
 /* These are the predicates defining representation invariants for the blockchain blocks and transactions. */
@@ -197,6 +199,8 @@ final class Blockchain {
 			
 		
 	}
+	
+
 
 	public boolean addSummaryBlock(SummaryBlock b)
 		/*@ requires
@@ -204,8 +208,9 @@ final class Blockchain {
 		&*& this.head |-> ?h
 		&*& b.BlockInv(h, _,_)
 		&*& h != null
-		&*& c > 0
-		;
+		&*& c> 0
+		&*& c % simpleToSummaryRatio == 0;
+		
 		@*/
 		//@ ensures result == true? isBlockchainWithCounter(this, c+1): isBlockchainWithCounter(this, c);
 		{
@@ -225,8 +230,8 @@ final class Blockchain {
 		&*& this.head |-> ?h
 		&*& b.BlockInv(h, _,_)
 		&*& h != null
-		&*& c > 0
-		;
+		&*& c> 0
+		&*& c % simpleToSummaryRatio != 0;
 			@*/
 			//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
 	{
