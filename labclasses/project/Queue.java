@@ -74,7 +74,7 @@ class Queue {
 
   Transaction dequeue() 
   //@ requires QueueInv(this, P, ?n, ?m) &*& n > 0;
-  //@ ensures QueueInv(this, P, n-1, m);
+  //@ ensures QueueInv(this, P, n-1, m) &*& TransInv(result,_,_,_);
   {
     Transaction v = array[tail++];
     if( tail == array.length ) tail = 0;
@@ -143,8 +143,8 @@ class CQueue {
   }
 
   void enqueue(Transaction v)  
-  //@ requires CQueueInv(this) &*& v != null &*& TransInv(v,_,_,_);
-  //@ ensures CQueueInv(this);
+  //@ requires [_]CQueueInv(this) &*& v != null &*& TransInv(v,_,_,_);
+  //@ ensures [_]CQueueInv(this);
   {
     mon.lock();
     //@ open CQueue_shared_state(this)();
@@ -161,8 +161,8 @@ class CQueue {
   }
 
   Transaction dequeue() 
-  //@ requires CQueueInv(this);
-  //@ ensures CQueueInv(this) &*& TransInv(result,_,_,_) &*& result != null;
+  //@ requires [_]CQueueInv(this);
+  //@ ensures [_]CQueueInv(this) &*& [_]TransInv(result,_,_,_);
   {
     mon.lock();
     //@ open CQueue_shared_state(this)();
@@ -176,6 +176,7 @@ class CQueue {
     //@ close CQueue_nonfull(this)();
     notfull.signal();
     mon.unlock();
+    //@close [_]TransInv(v,_,_,_);
     return v;
   }
 }

@@ -70,8 +70,8 @@ final class SimpleBlock implements Block {
 	private	Transaction transactions[];
 	
 	public SimpleBlock(Block previous, int r, Transaction ts[]) 
-	//@ requires isBlock(previous, ?h) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-	//@ ensures BlockInv(previous,_,_);
+	//@ requires[?f]isBlock(previous, ?h) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
+	//@ ensures [f]BlockInv(previous,_,_);
 	{
 		//@ open isBlock(previous, h);
 		this.previous = previous;
@@ -141,8 +141,8 @@ final class SimpleBlock implements Block {
 	}
 
 	public int hash()
-	//@ requires BlockInv(?p, ?hp, ?h);
-	//@ ensures BlockInv(p, hp, h) &*& result == h;
+	//@ requires [?f]BlockInv(?p, ?hp, ?h);
+	//@ ensures [f]BlockInv(p, hp, h) &*& result == h;
 	{
 		int txHash = hashTransactions(transactions);
 		return ((txHash ^ this.hashPrevious) ^ this.random);

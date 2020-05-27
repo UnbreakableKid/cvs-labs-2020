@@ -8,6 +8,8 @@ Note: please add your names and student numbers in all files you submit.
 */
 
 /* There are auxiliary functions and lemmas to assist in the verification of the code below. */
+import java.util.concurrent.locks.*;
+
 
 /*@
 	fixpoint int sum(list<int> vs) {
@@ -42,7 +44,28 @@ Note: please add your names and student numbers in all files you submit.
 /* These are the predicates defining representation invariants for the blockchain blocks and transactions. */
 
 /*@	
-	predicate isBlockchain(Blockchain b;) = b == null ? emp : b.head |-> ?l &*& l != null &*& isBlock(l,_);
+	predicate_ctor Blockchain_shared_state(Blockchain b)() = isBlockchainWithCounter(b, _);
+
+	predicate_ctor Blockchain_summaryCond(Blockchain b)() = b.counter |-> ?c &*& isBlockchainWithCounter(b, c) &*& c % 10 == 0;
+	
+	predicate_ctor Blockchain_simpleCond(Blockchain b)() = b.counter |-> ?c &*& isBlockchainWithCounter(b, c)  &*& c % 10 != 0;
+	
+	predicate isBlockchain(Blockchain b;) = b == null ? emp : b.head |-> ?h &*& h != null &*& isBlock(h,_);
+	
+	predicate isCBlockchain(Blockchain b;) =
+	
+	 b.mon |-> ?l
+	&*& b.simpleTurn |-> ?sim
+	&*& b.summaryTurn |-> ?nao
+	
+	&*& l != null
+	&*& sim != null
+	&*& nao != null
+	
+	&*& lck(l, 1, Blockchain_shared_state(b))
+	&*& cond(sim, Blockchain_shared_state(b), Blockchain_simpleCond(b))
+	&*& cond(nao, Blockchain_shared_state(b), Blockchain_summaryCond(b));
+
 	
 	predicate isBlockchainWithCounter(Blockchain b; int c) = isBlockchain(b) &*& b.counter |-> c &*& c >= 0;
  
@@ -102,13 +125,20 @@ interface Block {
  * with the expected operations to add and inspect the blocks
  */
 
+//@ predicate queue_frac(real f) = true;
+//@ predicate blockchain_frac(real f) = true;
+
 final class Blockchain {
 
 	final static int simpleToSummaryRatio = 10;
 	final static int blocksToCreate = 20; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
+	final static int nWorkers = 4;
 
 	Block head;
 	int counter;
+	ReentrantLock mon;
+	Condition summaryTurn;
+	Condition simpleTurn;
 
 	public int getCounter()
 	//@ requires isBlockchainWithCounter(this, ?c);
@@ -119,7 +149,7 @@ final class Blockchain {
 
 	public Blockchain()
 	//@ requires true;
-	//@ ensures isBlockchainWithCounter(this, 1);
+	//@ ensures isCBlockchain(this);
 	{
 
 		int[] balances = new int[Block.MAX_ID];
@@ -128,7 +158,19 @@ final class Blockchain {
 		SummaryBlock block = new SummaryBlock(null, 0, balances);
 		head = block;
 		counter = 1;
-		//@close isBlock(head, _);
+		
+				
+		//@close isBlock(head,_);
+
+		
+		//@close Blockchain_shared_state(this)();
+		//@close enter_lck(1, Blockchain_shared_state(this));
+		mon = new ReentrantLock();
+		//@close set_cond(Blockchain_shared_state(this), Blockchain_simpleCond(this));
+		simpleTurn = mon.newCondition();
+		//@close set_cond(Blockchain_shared_state(this), Blockchain_summaryCond(this));
+		summaryTurn = mon.newCondition();
+		
 
 	}
 	// Add methods and fields here.
@@ -195,43 +237,27 @@ final class Blockchain {
 		return true;
 	}
 
-	public boolean addSimpleBlock(SimpleBlock b)
-	/*@ requires	this.counter |-> ?c	
-	&*& this.head |-> ?h
-	&*& b.BlockInv(h, _,_)
-	&*& h != null
-	&*& c >= 0;
+	public boolean addSimpleBlock(int random, Transaction[] ts)
+	/*@ requires [?f]isCBlockchain(this) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
 		@*/
-	//@ ensures result == true? isBlockchainWithCounter(this, c+1) : isBlockchainWithCounter(this, c);
+	//@ ensures [f]isCBlockchain(this); // result == true? [f]isBlockchainWithCounter(this, c+1) : [f]isBlockchainWithCounter(this, c)
 	{
-
+		mon.lock();
+		//@ open Blockchain_shared_state(this)();
+		SimpleBlock b = new SimpleBlock(head, random, ts);
 		if (b.hash() % 100 != 0) {
-
-			//@open b.BlockInv(h, _,_);
-			//@close isBlockchainWithCounter(this, c);
+			//@open b.BlockInv(head, _,_ );
+			//@close Blockchain_shared_state(this)();
+			mon.unlock();
 			return false;
-		}
+		} 
 		this.head = b;
 		this.counter++;
+		//@close Blockchain_shared_state(this)();
+		mon.unlock();
 		return true;
-	}
-
-	public boolean createSimpleBlock(int random, Transaction[] ts)
-	//@requires random >= 0 &*& ts != null &*& isBlockchainWithCounter(this, ?c) &*& c >= 0  &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_) &*& [_] System.out |-> ?o &*& o != null;
-	//@ensures true;
-	{
-		
-				SimpleBlock block = new SimpleBlock(head, random, ts);
-
-				System.out.print("Adding SimpleBlock... ");
-				if (addSimpleBlock(block)) {
-					System.out.println("Success");
-					return true;
-				} else {
-					System.out.println("Failed");
-					return false;
-				}
-	}
+	}	
+	
 	public static void main(String[] args)
 	//@ requires [_] System.out |-> ?o &*& o != null;
 	//@ ensures true;
@@ -252,9 +278,24 @@ final class Blockchain {
 
 		CQueue queue = new CQueue(21);
 
-		TransactionMaker tm = new TransactionMaker(queue, Block.MAX_ID);
-
-		SimpleBlockMaker simp = new SimpleBlockMaker(b,queue, maxTransactions);
+		//@ close queue_frac(1);
+		//@ close blockchain_frac(1);
+		for (int i = 0; i < nWorkers; i++)
+		//@ invariant blockchain_frac(?g) &*& [g]isCBlockchain(b) &*& queue_frac(?f) &*& [f]CQueueInv(queue) &*& [_] System.out |-> o &*& o != null;
+		{
+			//@open queue_frac(f);
+			
+			//@close queue_frac(f/2);
+			new Thread(new TransactionMaker(queue, Block.MAX_ID)).start();
+			
+			//@open blockchain_frac(g);
+			//@close queue_frac(f/4);
+			//@close blockchain_frac(g/2);
+			new Thread(new SimpleBlockMaker(b,queue, maxTransactions)).start();
+			
+			//@close queue_frac(f/4);
+			//@close blockchain_frac(g/2);
+		}
 //		SummaryBlockMaker summ = new SummaryBlockMaker(b);
 
 		// toSend[0] = t;
@@ -333,22 +374,20 @@ final class Blockchain {
  * SimpleBlockMaker
  */
 
-/*@ predicate SimpInv(SimpleBlockMaker tm;) = tm.blockchain |-> ?b &*& isBlockchainWithCounter(b,?c) &*& c>=0 &*& b!=null &*& tm.queue |-> ?q &*& q != null 
-
-&*& CQueueInv(q)
-&*& tm.maxTransactions |-> ?m &*& m > 0;
+/*@ predicate SimpInv(SimpleBlockMaker tm;) = tm.blockchain |-> ?b &*& [_]isCBlockchain(b) &*& b!=null &*& tm.queue |-> ?q &*& q != null 
+		&*& [_]CQueueInv(q) &*& tm.maxTransactions |-> ?m &*& m > 0;
 
 @*/
-class SimpleBlockMaker implements Runnable {
+class SimpleBlockMaker implements Runnable { // Consumer
 
 	Blockchain blockchain;
 	CQueue queue;
 	int maxTransactions;
-	//@predicate pre() = SimpInv(this);
+	//@predicate pre() = SimpInv(this) &*& [_] System.out |-> ?o &*& o != null;
 	//@predicate post() = true;
 
 	public SimpleBlockMaker(Blockchain b, CQueue q, int maxTransactions)
-	//@requires isBlockchainWithCounter(b,?c) &*& c>=0 &*& b!=null &*& q != null &*& CQueueInv(q) &*& maxTransactions > 0;
+	//@requires blockchain_frac(?g) &*& [g]isCBlockchain(b) &*& b!=null &*& q != null &*& queue_frac(?f) &*& [f]CQueueInv(q) &*& maxTransactions > 0 &*& [_] System.out |-> ?o &*& o != null;
 	//@ensures pre();
 	{
 		this.blockchain = b;
@@ -363,24 +402,31 @@ class SimpleBlockMaker implements Runnable {
 	{
 		int random = 0;
 		while (true)
-		//@invariant SimpInv(this) &*& random >=0;
+		//@invariant SimpInv(this) &*& random >=0 &*& [_] System.out |-> ?o &*& o != null;
 		{
 			
 			Transaction[] ts = new Transaction[maxTransactions];
-
+			
+			Transaction temp = queue.dequeue();
+			ts[0] = temp;
+			//@ array_slice_deep_close(ts,0, TransHash, unit);
 			for (int i = 0; i < maxTransactions; i++)
-			//@invariant this.maxTransactions |-> ?t &*& this.queue |-> ?q &*& CQueueInv(q) &*& q!=null &*& array_slice(ts,0,t,_) &*& 0 <= i &*& i<= ts.length;
+			//@invariant SimpInv(this)  &*& array_slice_deep(ts,0,i, TransHash,unit, _, _) &*& 0 <= i &*& i<= ts.length &*& [_] System.out |-> o &*& o != null;
 			{
 				Transaction temp = queue.dequeue();
-				//@close [1]TransHash(unit,temp,_);
 				ts[i] = temp;
-				//@ array_slice_deep_close(ts, i, TransHash, unit);
+				//@ array_slice_close(ts, i, TransInv, unit, _,_);
 			}
-			//@ assert array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
-			if (!blockchain.createSimpleBlock(random, ts))
+			
+			System.out.print("Adding SimpleBlock... ");
+			if (!blockchain.addSimpleBlock(random, ts)){
+				System.out.println("Failed");
 				for (int i = 0; i < ts.length; i++) {
 					queue.enqueue(ts[i]);
 				}
+			} else {
+				System.out.println("Success");
+			}
 
 			random++;
 
@@ -401,7 +447,7 @@ class TransactionMaker implements Runnable{
 	//@predicate post() = true;
 
 	public TransactionMaker(CQueue q, int clients) 
-		//@requires q!=null &*& CQueueInv(q) &*& clients == Block.MAX_ID;
+		//@requires q!=null &*& queue_frac(?f) &*& [f]CQueueInv(q) &*& clients == Block.MAX_ID;
 		//@ensures pre() &*& CQueueInv(q);
 		{
 		this.queue = q;
@@ -420,6 +466,7 @@ class TransactionMaker implements Runnable{
 			// try {
 				//Thread.sleep(3000);
 				Transaction transaction = new Transaction(0, 1, 50);
+				queue.enqueue(transaction);
 			
 			// } catch (InterruptedException e) {
 			// 	e.printStackTrace();
