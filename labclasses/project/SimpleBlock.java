@@ -6,8 +6,12 @@ Project assignment to implement and verify a simplified blockchain.
 ï¿½2020 Joï¿½o Costa Seco, Eduardo Geraldo
 
 Note: please add your names and student numbers in all files you submit.
-*/
 
+João Pacheco 56982
+
+Pedro Pais 48247
+
+*/
 
 /* 
    The class of blockchain simple blocks. 

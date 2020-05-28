@@ -1,5 +1,9 @@
 import java.util.concurrent.locks.*;
 
+// João Pacheco 56982
+
+// Pedro Pais 48247
+
 /*@
 
   predicate AInv(A a;) = a.a |-> ?v &*& v >= 0;

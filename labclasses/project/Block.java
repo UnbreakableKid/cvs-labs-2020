@@ -5,6 +5,11 @@ Project assignment to implement and verify a simplified blockchain.
 �2020 Jo�o Costa Seco, Eduardo Geraldo
 
 Note: please add your names and student numbers in all files you submit.
+
+
+João Pacheco 56982
+
+Pedro Pais 48247
 */
 
 /* There are auxiliary functions and lemmas to assist in the verification of the code below. */
