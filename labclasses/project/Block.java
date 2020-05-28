@@ -247,15 +247,16 @@ final class Blockchain {
 
 		}
 		
+		
 		this.head = b;
 		//@assert counter % simpleToSummaryRatio == 0;
+		//@assert this.counter |-> ?c1;
 		this.counter++;
-		//@assert counter % simpleToSummaryRatio != 0;
+		
+		//@ mod_sum(c1, simpleToSummaryRatio, 1);
+		//@assert c1+1 % simpleToSummaryRatio != 0;
 		//@close Blockchain_simpleCond(this)();
 		simpleTurn.signal();
-		//@close Blockchain_shared_state(this)();
-		
-		
 		
 		mon.unlock();
 		return true;
