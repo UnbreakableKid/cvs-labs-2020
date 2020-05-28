@@ -176,7 +176,7 @@ class CQueue {
     //@ close CQueue_nonfull(this)();
     notfull.signal();
     mon.unlock();
-    //@close [_]TransInv(v,_,_,_);
+    //@close TransInv(v,_,_,_);
     return v;
   }
 }
