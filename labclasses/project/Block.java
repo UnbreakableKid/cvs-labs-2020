@@ -46,9 +46,9 @@ import java.util.concurrent.locks.*;
 /*@	
 	predicate_ctor Blockchain_shared_state(Blockchain b)() = isBlockchainWithCounter(b, _);
 
-	predicate_ctor Blockchain_summaryCond(Blockchain b)() = b.counter |-> ?c &*& isBlockchainWithCounter(b, c) &*& c % 10 == 0;
+	predicate_ctor Blockchain_summaryCond(Blockchain b)() = isBlockchainWithCounter(b, ?c) &*& (c % 10) == 0;
 	
-	predicate_ctor Blockchain_simpleCond(Blockchain b)() = b.counter |-> ?c &*& isBlockchainWithCounter(b, c)  &*& c % 10 != 0;
+	predicate_ctor Blockchain_simpleCond(Blockchain b)() = isBlockchainWithCounter(b, ?c)  &*& (c % 10) != 0;
 	
 	predicate isBlockchain(Blockchain b;) = b == null ? emp : b.head |-> ?h &*& h != null &*& isBlock(h,_);
 	
@@ -243,9 +243,12 @@ final class Blockchain {
 		
 		this.head = b;
 		this.counter++;
+		//@close Blockchain_simpleCond(this)();
+		simpleTurn.signal();
 		//@close Blockchain_shared_state(this)();
 		summaryTurn.await();
-		simpleTurn.signal();
+		
+		
 		mon.unlock();
 		return true;
 	}
