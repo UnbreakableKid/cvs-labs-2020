@@ -240,7 +240,7 @@ final class Blockchain {
 	public boolean addSimpleBlock(int random, Transaction[] ts)
 	/*@ requires [?f]isCBlockchain(this) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_);
 		@*/
-	//@ ensures [f]isCBlockchain(this); // result == true? [f]isBlockchainWithCounter(this, c+1) : [f]isBlockchainWithCounter(this, c)
+	//@ ensures  result == false? [f]isCBlockchain(this) &*& array_slice_deep(ts,0,ts.length,TransHash,unit,_,_) : [f]isCBlockchain(this); // result == true? [f]isBlockchainWithCounter(this, c+1) : [f]isBlockchainWithCounter(this, c)
 	{
 		mon.lock();
 		//@ open Blockchain_shared_state(this)();
@@ -407,21 +407,23 @@ class SimpleBlockMaker implements Runnable { // Consumer
 			
 			Transaction[] ts = new Transaction[maxTransactions];
 			
-			Transaction temp = queue.dequeue();
-			ts[0] = temp;
-			//@ array_slice_deep_close(ts,0, TransHash, unit);
-			for (int i = 0; i < maxTransactions; i++)
-			//@invariant SimpInv(this)  &*& array_slice_deep(ts,0,i, TransHash,unit, _, _) &*& 0 <= i &*& i<= ts.length &*& [_] System.out |-> o &*& o != null;
-			{
-				Transaction temp = queue.dequeue();
-				ts[i] = temp;
-				//@ array_slice_close(ts, i, TransInv, unit, _,_);
-			}
 			
+
+			for (int i = 0; i < ts.length; i++)
+			//@invariant SimpInv(this) &*& array_slice(ts,i,ts.length, ?elems) &*& array_slice_deep(ts, 0, i, TransHash, unit, _, _) &*& 0 <= i &*& i<= ts.length &*& [_] System.out |-> o &*& o != null;
+			{
+				ts[i] = queue.dequeue();		
+			}
+			//@assert array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _);
 			System.out.print("Adding SimpleBlock... ");
+			
 			if (!blockchain.addSimpleBlock(random, ts)){
+			//@assert array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _);
 				System.out.println("Failed");
-				for (int i = 0; i < ts.length; i++) {
+				
+				for (int j = 0; j < ts.length; j++) 
+				//@ invariant SimpInv(this) &*& 0 <= j &*& j<= ts.length &*& array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _) ;
+				{
 					queue.enqueue(ts[i]);
 				}
 			} else {

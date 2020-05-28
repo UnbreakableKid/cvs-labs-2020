@@ -162,7 +162,7 @@ class CQueue {
 
   Transaction dequeue() 
   //@ requires [_]CQueueInv(this);
-  //@ ensures [_]CQueueInv(this) &*& [_]TransInv(result,_,_,_);
+  //@ ensures [_]CQueueInv(this) &*& TransInv(result,_,_,_) &*& result != null;
   {
     mon.lock();
     //@ open CQueue_shared_state(this)();
