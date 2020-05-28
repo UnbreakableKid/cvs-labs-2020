@@ -46,9 +46,9 @@ import java.util.concurrent.locks.*;
 /*@	
 	predicate_ctor Blockchain_shared_state(Blockchain b)() = isBlockchainWithCounter(b, _);
 
-	predicate_ctor Blockchain_summaryCond(Blockchain b)() = isBlockchainWithCounter(b, ?c) &*& (c % 10) == 0;
+	predicate_ctor Blockchain_summaryCond(Blockchain b)() = isBlockchainWithCounter(b, ?c) &*& (c % Blockchain.simpleToSummaryRatio) == 0;
 	
-	predicate_ctor Blockchain_simpleCond(Blockchain b)() = isBlockchainWithCounter(b, ?c)  &*& (c % 10) != 0;
+	predicate_ctor Blockchain_simpleCond(Blockchain b)() = isBlockchainWithCounter(b, ?c)  &*& (c % Blockchain.simpleToSummaryRatio) != 0;
 	
 	predicate isBlockchain(Blockchain b;) = b == null ? emp : b.head |-> ?h &*& h != null &*& isBlock(h,_);
 	
@@ -219,14 +219,20 @@ final class Blockchain {
 	}
 
 	public boolean addSummaryBlock(int random)
-	/*@ requires [?f]isCBlockchain(this) &*& [_]System.out |-> ?o &*& o != null;
+	/*@ requires [?f]isCBlockchain(this) &*& [_]System.out |-> ?o &*& o != null ;
 	@*/
 	//@ ensures [f]isCBlockchain(this); 
 	{
+		
 	
 		//System.out.println("test " + counter);
 		mon.lock();
 		//@ open Blockchain_shared_state(this)();	
+		if(counter % simpleToSummaryRatio != 0) {
+			//@close Blockchain_shared_state(this)();
+			summaryTurn.await();
+			//@open Blockchain_summaryCond(this)();
+		}
 		int[] balances = new int[Block.MAX_ID];
 		
 		//@ close ValidCheckpoint(balances);
@@ -242,11 +248,13 @@ final class Blockchain {
 		}
 		
 		this.head = b;
+		//@assert counter % simpleToSummaryRatio == 0;
 		this.counter++;
+		//@assert counter % simpleToSummaryRatio != 0;
 		//@close Blockchain_simpleCond(this)();
 		simpleTurn.signal();
 		//@close Blockchain_shared_state(this)();
-		summaryTurn.await();
+		
 		
 		
 		mon.unlock();
@@ -261,13 +269,14 @@ final class Blockchain {
 
 		//System.out.println("test " + counter);
 		mon.lock();
-		
-		if( counter % simpleToSummaryRatio == 0){
-				simpleTurn.await();
+		//@ open Blockchain_shared_state(this)();
+		if(counter % simpleToSummaryRatio == 0){
+			//@close Blockchain_summaryCond(this)();
 			summaryTurn.signal();
+			simpleTurn.await();
+			//@open Blockchain_simpleCond(this)();
 
 		}
-		//@ open Blockchain_shared_state(this)();
 
 		SimpleBlock b = new SimpleBlock(head, random, ts);
 
