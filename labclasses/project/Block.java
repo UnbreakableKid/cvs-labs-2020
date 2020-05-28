@@ -226,10 +226,9 @@ final class Blockchain {
 	
 		//System.out.println("test " + counter);
 		mon.lock();
-		
-		
+		//@ open Blockchain_shared_state(this)();	
 		int[] balances = new int[Block.MAX_ID];
-		//@ open Blockchain_shared_state(this)();
+		
 		//@ close ValidCheckpoint(balances);
 		SummaryBlock b = new SummaryBlock(head, random, balances);
 		if (b.hash() % 100 != 0) {
@@ -245,6 +244,8 @@ final class Blockchain {
 		this.head = b;
 		this.counter++;
 		//@close Blockchain_shared_state(this)();
+		summaryTurn.await();
+		simpleTurn.signal();
 		mon.unlock();
 		return true;
 	}
@@ -258,7 +259,11 @@ final class Blockchain {
 		//System.out.println("test " + counter);
 		mon.lock();
 		
-		
+		if( counter % simpleToSummaryRatio == 0){
+				simpleTurn.await();
+			summaryTurn.signal();
+
+		}
 		//@ open Blockchain_shared_state(this)();
 
 		SimpleBlock b = new SimpleBlock(head, random, ts);
@@ -285,6 +290,8 @@ final class Blockchain {
 			mon.unlock();
 			return false;
 		} 
+		
+		
 		
 		this.head = b;
 		this.counter++;
