@@ -150,7 +150,12 @@ class CQueue {
     //@ open CQueue_shared_state(this)();
     if( q.isFull() ) {
       //@ close CQueue_shared_state(this)();
-      notfull.await();
+      try {
+		notfull.await();
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
       //@ open CQueue_nonfull(this)();
     }
     //@ open QueueInv(q,_,_,_);
@@ -168,7 +173,12 @@ class CQueue {
     //@ open CQueue_shared_state(this)();
     if( q.isEmpty() ) {
       //@ close CQueue_shared_state(this)();
-      notempty.await();
+      try {
+		notempty.await();
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
       //@ open CQueue_nonempty(this)();
     }
     //@ open QueueInv(q,_,_,_);

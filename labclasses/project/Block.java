@@ -101,7 +101,7 @@ import java.util.concurrent.locks.*;
 interface Block {
 	//@ predicate BlockInv(Block p, int hp, int h);
 
-	static final int MAX_ID = 2;
+	static final int MAX_ID = 50;
 
 	int balanceOf(int id);
 	//@ requires BlockInv(?p, ?hp, ?h) &*& ValidID(id) == true;
@@ -131,7 +131,6 @@ interface Block {
 final class Blockchain {
 
 	final static int simpleToSummaryRatio = 10;
-	final static int blocksToCreate = 20; // counter ends at blocksToCreate + 1 (we create a summary right at the constructor)
 	final static int nWorkers = 4;
 
 	Block head;
@@ -153,7 +152,13 @@ final class Blockchain {
 	{
 
 		int[] balances = new int[Block.MAX_ID];
-		balances[0] = 100;
+
+		for (int i = 0; i < balances.length; i++)
+		//@invariant 0<= i &*& i<=balances.length &*& array_slice(balances, 0, balances.length,_);
+		{
+			
+			balances[i] = 100;
+		}
 		//@close ValidCheckpoint(balances);
 		SummaryBlock block = new SummaryBlock(null, 0, balances);
 		head = block;
@@ -224,16 +229,30 @@ final class Blockchain {
 	//@ ensures [f]isCBlockchain(this); 
 	{
 		
-	
-		//System.out.println("test " + counter);
+		//System.out.println("Counter: " + counter);
 		mon.lock();
 		//@ open Blockchain_shared_state(this)();	
 		if(counter % simpleToSummaryRatio != 0) {
 			//@close Blockchain_shared_state(this)();
-			summaryTurn.await();
+			
+
+			
+			try {
+				System.out.println("Summary Block Waiting");
+
+				summaryTurn.await();
+			} catch (InterruptedException e) {
+			}
+
+			
+			
 			//@open Blockchain_summaryCond(this)();
+
 		}
+		System.out.println("I'm Free");
+
 		int[] balances = new int[Block.MAX_ID];
+		balances = getBalances((SimpleBlock)head);
 		
 		//@ close ValidCheckpoint(balances);
 		SummaryBlock b = new SummaryBlock(head, random, balances);
@@ -242,6 +261,7 @@ final class Blockchain {
 			//@open b.BlockInv(head, _,_ );
 			
 			//@close Blockchain_shared_state(this)();
+			System.out.println("Failed Summary Block");
 			mon.unlock();
 			return false;
 
@@ -258,6 +278,8 @@ final class Blockchain {
 		//@close Blockchain_simpleCond(this)();
 		simpleTurn.signal();
 		
+		System.out.println("Success Summary Block");
+
 		mon.unlock();
 		return true;
 	}
@@ -268,13 +290,21 @@ final class Blockchain {
 	//@ ensures  result == false? [f]isCBlockchain(this) : [f]isCBlockchain(this); // result == true? [f]isBlockchainWithCounter(this, c+1) : [f]isBlockchainWithCounter(this, c)
 	{
 
-		//System.out.println("test " + counter);
+		//System.out.println("Counter: " + counter);
 		mon.lock();
 		//@ open Blockchain_shared_state(this)();
 		if(counter % simpleToSummaryRatio == 0){
 			//@close Blockchain_summaryCond(this)();
+
 			summaryTurn.signal();
-			simpleTurn.await();
+			
+			
+			try {
+				System.out.println("Simple Block Waiting");
+				simpleTurn.await();
+			} catch (InterruptedException e) {
+			}
+			
 			//@open Blockchain_simpleCond(this)();
 
 		}
@@ -288,11 +318,12 @@ final class Blockchain {
 		boolean inValid = false;
 
 		for(int i = 0; i < balances.length; i++)
-		//@invariant 0<=i &*& i<= balances.length &*& array_slice(balances, 0, balances.length, _);
+		//@invariant 0<=i &*& i<= balances.length &*& array_slice(balances, 0, balances.length, _) &*& [_] System.out |-> o &*& o != null;
 		{
 			if(balances[i] < 0){
 				inValid = true;
-
+				System.out.println("Invalid Block");
+				break;
 			}
 			
 		}
@@ -300,15 +331,18 @@ final class Blockchain {
 			//@open b.BlockInv(head, _,_ );
 			
 			//@close Blockchain_shared_state(this)();
+
+			System.out.println("Failed Simple Block");
+
 			mon.unlock();
 			return false;
 		} 
 		
-		
-		
 		this.head = b;
 		this.counter++;
 		//@close Blockchain_shared_state(this)();
+		System.out.println("Success Simple Block");
+
 		mon.unlock();
 		return true;
 	}	
@@ -318,23 +352,26 @@ final class Blockchain {
 	//@ ensures true;
 	{
 
-		int maxTransactions = 2;
+		int maxTransactions = 10;
 
 
 		Blockchain b = new Blockchain();
 
-		CQueue queue = new CQueue(21);
+		CQueue queue = new CQueue(30);
 
 		//@ close queue_frac(1);
 		//@ close blockchain_frac(1);
+	
 		for (int i = 0; i < nWorkers; i++)
 		//@ invariant blockchain_frac(?g) &*& [g]isCBlockchain(b) &*& queue_frac(?f) &*& [f]CQueueInv(queue) &*& [_] System.out |-> o &*& o != null;
 		{
 			//@open queue_frac(f);
+			if(i == 0){
 			
 			//@close queue_frac(f/2);
 			new Thread(new TransactionMaker(queue, Block.MAX_ID)).start();
 			
+			}
 			//@open blockchain_frac(g);
 			//@close queue_frac(f/4);
 			//@close [f/4]CQueueInv(queue);
@@ -344,8 +381,10 @@ final class Blockchain {
 			
 
 			//@close blockchain_frac(g/4);
-		
+		if (i == 0) {
+			
 			new Thread(new SummaryBlockMaker(b)).start();
+		}
 			
 				
 			//@close queue_frac(f/4);
@@ -402,16 +441,9 @@ class SimpleBlockMaker implements Runnable { // Consumer
 				ts[i] = queue.dequeue();		
 			}
 			//@assert array_slice_deep(ts, 0, ts.length, TransHash, unit, _, _);
-			System.out.print("Adding SimpleBlock... ");
+			System.out.println("Adding SimpleBlock... ");
 			
-			if (!blockchain.addSimpleBlock(random, ts)){
-
-				System.out.println("SimpleBlock Failed");
-				
-				
-			} else {
-				System.out.println("SimpleBlock Success");
-			}
+			blockchain.addSimpleBlock(random, ts);
 
 			random++;
 
@@ -453,15 +485,9 @@ class SummaryBlockMaker implements Runnable { // Consumer
 		//@invariant SumInv(this) &*& random >=0 &*& [_] System.out |-> ?o &*& o != null;
 		{	
 
-			System.out.print("Adding Summary... ");
+			System.out.println("Adding Summary... ");
 			
-			if (!blockchain.addSummaryBlock(random)){
-
-				System.out.println("SummaryBlock Failed");
-					
-			} else {
-				System.out.println("SummaryBlock Success");
-			}
+			blockchain.addSummaryBlock(random);
 
 			random++;
 
@@ -496,50 +522,18 @@ class TransactionMaker implements Runnable{
 	//@ensures post();
 	{
 		int counter = 0;
-		int counter2 = 0;
+		int counter2 = 1;
 		while (true) 
 		//@invariant TmInv(this) &*& 0 <= counter &*& counter < Block.MAX_ID &*& 0 <= counter2 &*& counter2 < Block.MAX_ID;
 		{
-			// try {
-				//Thread.sleep(3000);
-						
+								
 				counter = (counter + 1) % Block.MAX_ID;
-				counter2 = (counter2 + 2) % Block.MAX_ID;
+				counter2 = (counter2 + 1) % Block.MAX_ID;
 				
 				Transaction transaction = new Transaction(counter, counter2, 50);
 				queue.enqueue(transaction);
-
-			
-			// } catch (InterruptedException e) {
-			// 	e.printStackTrace();
-			// }
 		}
 	 
  	}
 
 }
-	
-	// public Transaction doValidTransaction(int sender, int receiver, int amount)
-	// //@requires isBlockchain(this) &*& isBlock(head,_) &*& amount > 0 &*& ValidID(sender) == true &*& ValidID(receiver) == true &*& head != null;
-	// //@ensures result == null? TransInv(result, sender, receiver, 0): TransInv(result, sender, receiver, amount);  
-	// {
-
-	// 	int balanceOfSender = 0;
-		
-	// 	int[] balances = getBalances();
-		
-
-	// 	balances[sender] += head.balanceOf(sender);
-
-	// 	if (balanceOfSender < 0) {
-						
-	// 		return null;
-	// 	}
-	// 	//@assert amount > 0;
-	// 	Transaction t = new Transaction(sender, receiver, amount);
-
-	// 	return t;
-	// }
-
-	
-
