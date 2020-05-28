@@ -382,10 +382,8 @@ final class Blockchain {
 			//@close queue_frac(f/2);
 			//@close blockchain_frac(g/2);
 			
-			
 			new Thread(new SimpleBlockMaker(b,queue, maxTransactions)).start();
 			
-
 			//@close blockchain_frac(g/2);	
 			//@close queue_frac(f/2);
 			
