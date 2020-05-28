@@ -362,33 +362,32 @@ final class Blockchain {
 		//@ close queue_frac(1);
 		//@ close blockchain_frac(1);
 	
+		//@ open queue_frac(1);
+		//@ close queue_frac(1/2);
+		new Thread(new TransactionMaker(queue, Block.MAX_ID)).start();
+		
+		//@ open blockchain_frac(1);
+		//@ close blockchain_frac(1/2);
+		new Thread(new SummaryBlockMaker(b)).start();
+		
+		//@close blockchain_frac(1/2);
+		//@ close queue_frac(1/2);
+	
 		for (int i = 0; i < nWorkers; i++)
 		//@ invariant blockchain_frac(?g) &*& [g]isCBlockchain(b) &*& queue_frac(?f) &*& [f]CQueueInv(queue) &*& [_] System.out |-> o &*& o != null;
 		{
 			//@open queue_frac(f);
-			if(i == 0){
 			
-			//@close queue_frac(f/2);
-			new Thread(new TransactionMaker(queue, Block.MAX_ID)).start();
-			
-			}
 			//@open blockchain_frac(g);
-			//@close queue_frac(f/4);
-			//@close [f/4]CQueueInv(queue);
+			//@close queue_frac(f/2);
+			//@close [f/2]CQueueInv(queue);
 			//@close blockchain_frac(g/2);
 			
 			new Thread(new SimpleBlockMaker(b,queue, maxTransactions)).start();
 			
 
-			//@close blockchain_frac(g/4);
-		if (i == 0) {
-			
-			new Thread(new SummaryBlockMaker(b)).start();
-		}
-			
-				
-			//@close queue_frac(f/4);
-			//@close blockchain_frac(g/4);
+			//@close blockchain_frac(g/2);	
+			//@close queue_frac(f/2);
 			
 		}
 
