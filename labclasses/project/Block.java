@@ -377,11 +377,11 @@ final class Blockchain {
 		//@ invariant blockchain_frac(?g) &*& [g]isCBlockchain(b) &*& queue_frac(?f) &*& [f]CQueueInv(queue) &*& [_] System.out |-> o &*& o != null;
 		{
 			//@open queue_frac(f);
-			
 			//@open blockchain_frac(g);
+			
 			//@close queue_frac(f/2);
-			//@close [f/2]CQueueInv(queue);
 			//@close blockchain_frac(g/2);
+			
 			
 			new Thread(new SimpleBlockMaker(b,queue, maxTransactions)).start();
 			
